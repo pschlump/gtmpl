@@ -1,0 +1,2 @@
+# gtmpl
+Template generate code
