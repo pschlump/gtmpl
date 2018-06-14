@@ -1,0 +1,12 @@
+Data: {
+	"a": 22,
+	"b": 8,
+	"c": "bob c"
+}
+gCfg: {
+	"name": "gtmpl"
+}
+TMPL files tmplList: [
+	"aaa.tmpl"
+]
+Unable to open: aaa.tmpl error open aaa.tmpl: no such file or directory 

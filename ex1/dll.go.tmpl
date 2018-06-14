@@ -1,0 +1,32 @@
+package DLL{{.type | title }}
+
+type DLLNode{{.type | title }} struct {
+	next, prev *DLLNode{{.type | title }}
+	data {{.type}}
+}
+
+type DLL{{.type | title }} struct {
+	head, tail *DLLNode{{.type | title }}
+}
+
+func NewDLL{{.type}} () ( *DLL{{.type | title }} ) {
+	return &DLL{{.type | title }} {}
+}
+
+func (dt *DLL{{.type | title }}) InsertHead ( data {{.type}} ) {
+	nn := &DLLNode{{.type | title }} {
+		data: data,
+	}
+	if dt.head != nil {
+		tmp := dt.head;
+		nn.next = tmp;
+		tmp.prev = nn;
+		dt.head = nn;
+	} else {
+		dt.tail = nn;
+		dt.head = nn;
+	}
+}
+
+// In a real DLL data type you would want to have other fuctions like InsertTail, PopHead, PopTail etc...
+

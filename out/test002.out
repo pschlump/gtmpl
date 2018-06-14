@@ -1,0 +1,13 @@
+Data: {
+	"a": 22,
+	"b": 8,
+	"c": "bob c"
+}
+gCfg: {
+	"name": "gtmpl"
+}
+TMPL files tmplList: [
+	"aaa.tmpl"
+]
+Template file name with path [./test1/aaa.tmpl]
+Output file name with path [./out/aaa]

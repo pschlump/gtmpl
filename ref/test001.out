@@ -1,0 +1,11 @@
+Data: {
+	"a": 22,
+	"b": 8,
+	"c": "bob c"
+}
+gCfg: {
+	"name": "gtmpl"
+}
+TMPL files tmplList: [
+	"aaa.tmpl"
+]
