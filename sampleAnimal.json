@@ -1,0 +1,13 @@
+{
+	"creationDate": "2018-10-04T05:52:14.001Z",
+	"eventTimeStamp": "2018-10-04T05:49:21.109Z",
+	"eventTimeZone": "6:00",
+	"taggedEvent": "7240122121|birth|rifd|4012214314141821279121|A401|38dff129-3aa8-43a0-46bf-f308b1d80fc8",
+	"movedToEvent": "7240122121|move|pasture|4133432232",
+	"ranchLocation": "7240122121|supplier",
+	"ranchIBMID": "7240122121",
+	"movementID": "41442",
+	"noOfAnimal": "1",
+	"uom1": "BT",
+	"uom2": "MV"
+}

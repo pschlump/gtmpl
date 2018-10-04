@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns3:EPCISDocument schemaVersion="1.2" creationDate="{{.creationDate}}" xmlns:ns2="urn:epcglobal:cbv:mda" xmlns:ns3="urn:epcglobal:epcis:xsd:1">
+	<EPCISBody>
+		<EventList>
+			<extension>
+				<TransformationEvent>
+					<eventTime>{{.eventTimeStamp}}</eventTime>
+					<eventTimeZoneOffset>{{.eventTimeZone}}</eventTimeZoneOffset>
+					<baseExtension>
+						<eventID>urn:uuid:{{.eventUUID}}</eventID>
+					</baseExtension>
+					<inputEPCList/>
+					<inputQuantityList>
+						<quantityElement>
+							<epcClass>urn:ibm:ift:product:lot:class:{{.taggedEvent}}</epcClass>
+							<quantity>1000</quantity>
+							<uom>EA</uom>
+						</quantityElement>
+					</inputQuantityList>
+					<outputEPCList/>
+					<outputQuantityList>
+						<quantityElement>
+							<epcClass>urn:ibm:ift:product:lot:class:{{.movedToEvent}}</epcClass>
+							<quantity>750</quantity>
+							<uom>CS</uom>
+						</quantityElement>
+					</outputQuantityList>
+					<bizStep>urn:epcglobal:cbv:bizstep:transforming</bizStep>
+					<disposition>urn:epcglobal:cbv:disp:active</disposition>
+					<readPoint>
+					</readPoint>
+					<bizLocation>
+						<id>urn:ibm:ift:location:loc:{{.ranchLocation}}</id>
+					</bizLocation>
+					<bizTransactionList>
+						<bizTransaction type="urn:epcglobal:cbv:btt:prodorder">urn:epcglobal:cbv:bt:{{.ranchIBMID}}:{{.movementID}}</bizTransaction>
+					</bizTransactionList>
+				</TransformationEvent>
+			</extension>
+		</EventList>
+	</EPCISBody>
+</ns3:EPCISDocument>

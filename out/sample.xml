@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns3:EPCISDocument schemaVersion="1.2" creationDate="2018-10-04T05:52:14.001Z" xmlns:ns2="urn:epcglobal:cbv:mda" xmlns:ns3="urn:epcglobal:epcis:xsd:1">
+	<EPCISBody>
+		<EventList>
+			<extension>
+				<TransformationEvent>
+					<eventTime>2018-10-04T05:49:21.109Z</eventTime>
+					<eventTimeZoneOffset>6:00</eventTimeZoneOffset>
+					<baseExtension>
+						<eventID>urn:uuid:99a2199d-473c-41b4-6e3a-794102710c90</eventID>
+					</baseExtension>
+					<inputEPCList/>
+					<inputQuantityList>
+						<quantityElement>
+							<epcClass>urn:ibm:ift:product:lot:class:7240122121|birth|rifd|4012214314141821279121|A401|38dff129-3aa8-43a0-46bf-f308b1d80fc8</epcClass>
+							<quantity>1000</quantity>
+							<uom>EA</uom>
+						</quantityElement>
+					</inputQuantityList>
+					<outputEPCList/>
+					<outputQuantityList>
+						<quantityElement>
+							<epcClass>urn:ibm:ift:product:lot:class:7240122121|move|pasture|4133432232</epcClass>
+							<quantity>750</quantity>
+							<uom>CS</uom>
+						</quantityElement>
+					</outputQuantityList>
+					<bizStep>urn:epcglobal:cbv:bizstep:transforming</bizStep>
+					<disposition>urn:epcglobal:cbv:disp:active</disposition>
+					<readPoint>
+					</readPoint>
+					<bizLocation>
+						<id>urn:ibm:ift:location:loc:7240122121|supplier</id>
+					</bizLocation>
+					<bizTransactionList>
+						<bizTransaction type="urn:epcglobal:cbv:btt:prodorder">urn:epcglobal:cbv:bt:7240122121:41442</bizTransaction>
+					</bizTransactionList>
+				</TransformationEvent>
+			</extension>
+		</EventList>
+	</EPCISBody>
+</ns3:EPCISDocument>
