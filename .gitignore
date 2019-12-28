@@ -2,3 +2,4 @@ gtmpl
 ,*
 .DS_Store
 go.sum
+gtmpl.linux

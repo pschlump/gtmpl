@@ -2,6 +2,9 @@
 all:
 	go build
 
+build_linux:
+		GOOS=linux go build -o gtmpl.linux . 
+
 test: test001
 	@echo PASS
 
