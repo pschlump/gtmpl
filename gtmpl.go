@@ -34,10 +34,12 @@ TODO: some CLI processing is not yet done. (xyzzy 3)
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/pschlump/MiscLib"
@@ -60,29 +62,44 @@ type ConfigFile struct {
 
 var Cfg = "cfg.json"
 var Cli = ""
-var dbFlag map[string]bool
+var DbOn map[string]bool
 var tmplOpt = ""
 var tmplIsDir = false
 var outOpt = ""
 
 func init() {
-	dbFlag = make(map[string]bool)
-	dbFlag["setup"] = false
+	DbOn = make(map[string]bool)
+}
+
+var optCfg = flag.String("cfg", "", "xyzzy.")
+var optVersion = flag.Bool("version", false, "xyzzy.")
+var optHelp = flag.Bool("version", false, "xyzzy.")
+var optCli = flag.String("cli", "", "xyzzy.")
+var optData = flag.String("data", "", "xyzzy.")
+var optTmpl = flag.String("tmpl", "", "xyzzy.")
+var optOut = flag.String("out", "", "xyzzy.")
+var optDebug = flag.String("Debug", "", "xyzzy.")
+
+var optDbConn = flag.String("conn", "", "Database (PostgreSQL) connection string.")
+var optDbName = flag.String("dbname", "", "Database (PostgreSQL) name.")
+var optQuery = flag.String("sql", "", "Database (PostgreSQL) select to get data.")
+var optUseSubData = flag.Bool("sub-data", false, "use .data as a field for array of data.")
+
+func init() {
+	flag.StringVar(optCfg, "C", "", "xyzzy.")
+	flag.BoolVar(optVersion, "V", false, "xyzzy.")
+	flag.BoolVar(optHelp, "H", false, "xyzzy.")
+	flag.StringVar(optCli, "c", "", "xyzzy.")
+	flag.StringVar(optData, "d", "", "xyzzy.")
+	flag.StringVar(optTmpl, "t", "", "xyzzy.")
+	flag.StringVar(optOut, "o", "", "xyzzy.")
+	flag.StringVar(optDebug, "D", "", "xyzzy.")
 }
 
 func main() {
 
 	theData := make(map[string]interface{})
 	tmplList := make([]string, 0, 25)
-
-	inRange := func(name string, pos int) string {
-		if pos < len(os.Args) {
-			return os.Args[pos]
-		}
-		fmt.Fprintf(os.Stderr, "Usage: Invalid option %s - argument required, position=%d\n", name, pos)
-		os.Exit(1)
-		return ""
-	}
 
 	mergeData := func(data []byte) {
 		tD := make(map[string]interface{})
@@ -96,95 +113,89 @@ func main() {
 		}
 	}
 
-	// xyzzy - add in --help -h -?
-
-	for ii := 1; ii < len(os.Args); ii++ {
-		arg := os.Args[ii]
-		if arg == "--cfg" || arg == "-C" {
-			Cfg = inRange(arg, ii+1)
-			ii++
-		} else if arg == "--version" || arg == "version" {
-			fmt.Printf("gtmpl version 0.0.2 - from /Users/corwin/go/src/www.2c-why.com/Corp-Reg/gtmpl\n")
-			os.Exit(0)
-		} else if arg == "--help" {
-			fmt.Printf(`gtmpl version 0.0.3 
-
---cfg | -C <fn>				Config file, cfg.json for example.
---cli | -c "JSON-data"		Data in JSON format to use to substitute into template.
---data | -d <fn>			Data in JSON format in a file.
-
-`)
-		} else if arg == "--cli" || arg == "-c" {
-			if dbFlag["setup"] {
-				fmt.Printf("got a --cli at %d\n", ii)
-			}
-			dt := inRange(arg, ii+1)
-			ii++
-			mergeData([]byte(dt))
-		} else if arg == "--data" || arg == "-d" {
-			if dbFlag["setup"] {
-				fmt.Printf("got a --data at %d\n", ii)
-			}
-			fn := inRange(arg, ii+1)
-			ii++
-			dt, err := ioutil.ReadFile(fn)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error reading %s, error=%s\n", fn, err)
-				os.Exit(1)
-			}
-			mergeData(dt)
-		} else if arg == "--tmpl" || arg == "-t" {
-			if dbFlag["setup"] {
-				fmt.Printf("got a --tmpl at %d\n", ii)
-			}
-			tmplOpt = inRange(arg, ii+1)
-			ii++
-			// if dir - find all ./*.tmpl files and put those in list, if file just add to processing list.
-			if filelib.ExistsIsDir(tmplOpt) {
-				// check if --tmpl:fn is a file or dir.
-				fns, dirs := filelib.GetFilenames(tmplOpt)
-				// fmt.Printf("AT: %s, fns=%s\n", godebug.LF(), fns)
-				if len(dirs) > 0 {
-					fmt.Fprintf(os.Stderr, "Warning: not performaing recursive directory search on %s - sub-directories %s skipped\n", tmplOpt, dirs)
-				}
-				tmplList = append(tmplList, fns...)
-				tmplIsDir = true
-			} else if filelib.Exists(tmplOpt) {
-				tmplList = append(tmplList, tmplOpt)
-			} else {
-				fmt.Fprintf(os.Stderr, "%s %s must be a file or a directory containing template files\n", arg, tmplOpt)
-				os.Exit(1)
-			}
-		} else if arg == "--out" || arg == "-o" {
-			if dbFlag["setup"] {
-				fmt.Printf("got a --out at %d\n", ii)
-			}
-			outOpt = inRange(arg, ii+1)
-			ii++
-			// xyzzy -only 1 of these
-		} else if arg == "--merged" || arg == "-M" {
-			if dbFlag["setup"] {
-				fmt.Printf("got a --merged at %d\n", ii)
-			}
-			// xyzzy - merged data flag -and- dump, where?
-			ii++
-			// xyzzy -only 1 of these
-		} else if arg == "--debug" {
-			if dbFlag["setup"] {
-				fmt.Printf("got a --debug at %d\n", ii)
-			}
-			debugFlag := inRange(arg, ii+1)
-			dbFlag[debugFlag] = true
-			if dbFlag["setup"] {
-				fmt.Printf("Debug flag %s enabled\n", debugFlag)
-			}
-			ii++
-		} else {
-			fmt.Fprintf(os.Stderr, "Usage: invalid option, %s\n", arg)
-			os.Exit(2)
+	if *optDebug != "" {
+		ss := strings.Split(*optDebug, ",")
+		for _, s := range ss {
+			DbOn[s] = true
 		}
 	}
 
+	if *optVersion {
+		fmt.Printf("gtmpl version 0.0.4\n")
+		os.Exit(0)
+	}
+	if *optHelp {
+		usage()
+		os.Exit(0)
+	}
+	if *optCfg != "" {
+		Cfg = *optCfg
+	}
+
+	if *optDbConn != "" {
+		db_x := ConnectToAnyDb("postgres", *optDbConn, *optDbName)
+		if db_x == nil {
+			fmt.Fprintf(os.Stderr, "%sUnable to connection to database: s\n", MiscLib.ColorRed, MiscLib.ColorReset)
+			os.Exit(1)
+		}
+		data, err := SelData2(db_x.Db, *optQuery)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%sUnable to connection to database/failed on table select: %v%s\n", MiscLib.ColorRed, err, MiscLib.ColorReset)
+			os.Exit(1)
+		}
+		if DbOn["query"] {
+			fmt.Printf("Data=%s\n", godebug.SVarI(data))
+		}
+
+		if *optUseSubData {
+			theData = map[string]interface{}{
+				"data": data,
+			}
+		} else if len(data) == 1 {
+			theData = data[0]
+		} else if len(data) > 1 {
+			fmt.Printf("Warning - %d rows returend from %s, using 0th row\n", len(data), *optQuery)
+			theData = data[0]
+		} else if len(data) == 0 {
+			fmt.Printf("Warning - 0 rows returend from %s\n", *optQuery)
+		}
+	}
+
+	if *optCli != "" {
+		dt := *optCli
+		mergeData([]byte(dt))
+	}
+	if *optData != "" {
+		fn := *optData
+		dt, err := ioutil.ReadFile(fn)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error reading %s, error=%s\n", fn, err)
+			os.Exit(1)
+		}
+		mergeData(dt)
+	}
+	if *optTmpl != "" {
+		tmplOpt = *optTmpl
+		// if dir - find all ./*.tmpl files and put those in list, if file just add to processing list.
+		if filelib.ExistsIsDir(tmplOpt) {
+			// check if --tmpl:fn is a file or dir.
+			fns, dirs := filelib.GetFilenames(tmplOpt)
+			// fmt.Printf("AT: %s, fns=%s\n", godebug.LF(), fns)
+			if len(dirs) > 0 {
+				fmt.Fprintf(os.Stderr, "Warning: not performaing recursive directory search on %s - sub-directories %s skipped\n", tmplOpt, dirs)
+			}
+			tmplList = append(tmplList, fns...)
+			tmplIsDir = true
+		} else if filelib.Exists(tmplOpt) {
+			tmplList = append(tmplList, tmplOpt)
+		} else {
+			fmt.Fprintf(os.Stderr, "`--tmpl %s` must be a file or a directory containing template files\n", tmplOpt)
+			os.Exit(1)
+		}
+	}
+	if *optOut != "" {
+		outOpt = *optOut
+	}
 	if outOpt == "" {
 		fmt.Fprintf(os.Stderr, "Usage: --out must be specified\n")
 		os.Exit(1)
@@ -203,7 +214,7 @@ func main() {
 		gCfg = ReadConfig(Cfg)
 	}
 
-	if dbFlag["echo_input"] {
+	if DbOn["echo_input"] {
 		fmt.Printf("Data: %s\n", godebug.SVarI(theData))
 		fmt.Printf("gCfg: %s\n", godebug.SVarI(gCfg))
 		fmt.Printf("TMPL files tmplList: %s\n", godebug.SVarI(tmplList))
@@ -213,7 +224,7 @@ func main() {
 		//create a new template with some name
 		tmpl := template.New(fmt.Sprintf("tmpl_%d", tn)).Funcs(sprig.TxtFuncMap())
 
-		if dbFlag["proc_file"] {
+		if DbOn["proc_file"] {
 			fmt.Printf("%sprocessing [%s]%s\n", MiscLib.ColorGreen, tmpl, MiscLib.ColorReset)
 		}
 
@@ -224,7 +235,7 @@ func main() {
 		} else {
 			tmplFn = tf
 		}
-		if dbFlag["file_name"] {
+		if DbOn["file_name"] {
 			fmt.Printf("Template file name with path [%s]\n", tmplFn)
 		}
 		body, err := ioutil.ReadFile(tmplFn)
@@ -250,7 +261,7 @@ func main() {
 		} else {
 			ofn = outOpt
 		}
-		if dbFlag["file_name"] {
+		if DbOn["file_name"] {
 			fmt.Printf("Output file name with path [%s]\n", ofn)
 		}
 
@@ -285,4 +296,14 @@ func ReadConfig(fn string) (rv ConfigFile) {
 		os.Exit(1)
 	}
 	return
+}
+
+func usage() {
+	fmt.Printf(`gtmpl version 0.0.4 
+
+--cfg | -C <fn>				Config file, cfg.json for example.
+--cli | -c "JSON-data"		Data in JSON format to use to substitute into template.
+--data | -d <fn>			Data in JSON format in a file.
+
+`)
 }
