@@ -34,15 +34,14 @@ TODO: some CLI processing is not yet done. (xyzzy 3)
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 	"text/template"
 
 	"github.com/pschlump/MiscLib"
+	"github.com/pschlump/filelib"
 	"github.com/pschlump/godebug"
 	"github.com/pschlump/sprig"
 )
@@ -141,16 +140,16 @@ func main() {
 			tmplOpt = inRange(arg, ii+1)
 			ii++
 			// if dir - find all ./*.tmpl files and put those in list, if file just add to processing list.
-			if ExistsIsDir(tmplOpt) {
+			if filelib.ExistsIsDir(tmplOpt) {
 				// check if --tmpl:fn is a file or dir.
-				fns, dirs := GetFilenames(tmplOpt)
+				fns, dirs := filelib.GetFilenames(tmplOpt)
 				// fmt.Printf("AT: %s, fns=%s\n", godebug.LF(), fns)
 				if len(dirs) > 0 {
 					fmt.Fprintf(os.Stderr, "Warning: not performaing recursive directory search on %s - sub-directories %s skipped\n", tmplOpt, dirs)
 				}
 				tmplList = append(tmplList, fns...)
 				tmplIsDir = true
-			} else if Exists(tmplOpt) {
+			} else if filelib.Exists(tmplOpt) {
 				tmplList = append(tmplList, tmplOpt)
 			} else {
 				fmt.Fprintf(os.Stderr, "%s %s must be a file or a directory containing template files\n", arg, tmplOpt)
@@ -193,7 +192,7 @@ func main() {
 
 	// if --tmpl is a directory then --out must be a directory -check-
 	if tmplIsDir {
-		if !ExistsIsDir(outOpt) {
+		if !filelib.ExistsIsDir(outOpt) {
 			fmt.Fprintf(os.Stderr, "if tempalte input is a directory the --out must also specify a directory, out=%s\n", outOpt)
 			os.Exit(3)
 		}
@@ -244,7 +243,7 @@ func main() {
 		// generate output file name
 		ofn := ""
 		if tmplIsDir {
-			bn := RmExt(tf) // strip off .tmpl - leaving basename
+			bn := filelib.RmExt(tf) // strip off .tmpl - leaving basename
 			// TODO - xyzzy - if not .tmpl on end - then ERROR --------------------------------------- <<<<<<<<<<<<<<<<<<<<<<<<<<<<
 			bn = filepath.Base(bn) // just the name
 			ofn = outOpt + "/" + bn
@@ -255,7 +254,7 @@ func main() {
 			fmt.Printf("Output file name with path [%s]\n", ofn)
 		}
 
-		fp, err := Fopen(ofn, "w")
+		fp, err := filelib.Fopen(ofn, "w")
 		if err != nil {
 			fmt.Printf("Unable to open %s for output, error: %s ", ofn, err)
 			break
@@ -284,77 +283,6 @@ func ReadConfig(fn string) (rv ConfigFile) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error parsing %s, errror=%s\n", fn, err)
 		os.Exit(1)
-	}
-	return
-}
-
-// -------------------------------------------------------------------------------------------------
-func Exists(name string) bool {
-	if _, err := os.Stat(name); err != nil {
-		if os.IsNotExist(err) {
-			return false
-		}
-	}
-	return true
-}
-
-// -------------------------------------------------------------------------------------------------
-func ExistsIsDir(name string) bool {
-	fi, err := os.Stat(name)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return false
-		}
-	}
-	if fi.IsDir() {
-		return true
-	}
-	return false
-}
-
-// -------------------------------------------------------------------------------------------------
-// Get a list of filenames and directorys.
-// -------------------------------------------------------------------------------------------------
-func GetFilenames(dir string) (filenames, dirs []string) {
-	files, err := ioutil.ReadDir(dir)
-	if err != nil {
-		return nil, nil
-	}
-	for _, fstat := range files {
-		if !strings.HasPrefix(string(fstat.Name()), ".") {
-			if fstat.IsDir() {
-				dirs = append(dirs, fstat.Name())
-			} else {
-				filenames = append(filenames, fstat.Name())
-			}
-		}
-	}
-	return
-}
-
-// -------------------------------------------------------------------------------------------------
-func RmExt(filename string) string {
-	var extension = filepath.Ext(filename)
-	var name = filename[0 : len(filename)-len(extension)]
-	return name
-}
-
-// -------------------------------------------------------------------------------------------------
-var invalidMode = errors.New("Invalid Mode")
-
-func Fopen(fn string, mode string) (file *os.File, err error) {
-	file = nil
-	if mode == "r" {
-		file, err = os.Open(fn) // For read access.
-	} else if mode == "w" {
-		file, err = os.OpenFile(fn, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
-	} else if mode == "a" {
-		file, err = os.OpenFile(fn, os.O_RDWR|os.O_APPEND, 0660)
-		if err != nil {
-			file, err = os.OpenFile(fn, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
-		}
-	} else {
-		err = invalidMode
 	}
 	return
 }
