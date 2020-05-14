@@ -46,7 +46,10 @@ import (
 	"github.com/pschlump/filelib"
 	"github.com/pschlump/godebug"
 	"github.com/pschlump/sprig"
+	"gitlab.com/pschlump/PureImaginationServer/ReadConfig"
 )
+
+// "gitlab.com/pschlump/PureImaginationServer/ReadConfig"
 
 //
 //1. gtmpl -cli {data} -data file.json -tmpl Temlate.tmpl -out fn.out --inputDataMerged merged.data.json --tmplDir ./dir/
@@ -57,28 +60,29 @@ import (
 //
 
 type ConfigFile struct {
-	Name string `json:"name"`
+	Name   string `json:"name"`
+	DbConn string `json:"dbconn" default:"user=postgres dbname=postgres port=5432 host=127.0.0.1 sslmode=disable"`
+	DbName string `json:"dbname" default:"postgres"`
 }
 
-var Cfg = "cfg.json"
 var Cli = ""
 var DbOn map[string]bool
 var tmplOpt = ""
 var tmplIsDir = false
-var outOpt = ""
+var out *os.File = os.Stdout
 
 func init() {
 	DbOn = make(map[string]bool)
 }
 
-var optCfg = flag.String("cfg", "", "xyzzy.")
-var optVersion = flag.Bool("version", false, "xyzzy.")
-var optHelp = flag.Bool("version", false, "xyzzy.")
-var optCli = flag.String("cli", "", "xyzzy.")
-var optData = flag.String("data", "", "xyzzy.")
-var optTmpl = flag.String("tmpl", "", "xyzzy.")
-var optOut = flag.String("out", "", "xyzzy.")
-var optDebug = flag.String("Debug", "", "xyzzy.")
+var optCfg = flag.String("cfg", "cfg.json", "Global Configuration File.")           // 1
+var optVersion = flag.Bool("version", false, "Display version of this program.")    // 2
+var optHelp = flag.Bool("help", false, "Display usage/help information.")           // 3
+var optCli = flag.String("cli", "", "Provide data on command line in JSON format.") // 4
+var optData = flag.String("data", "", "Provide data in a JSON or XML file.")        // 5
+var optTmpl = flag.String("tmpl", "", "Template to process.")                       // 6
+var optOut = flag.String("out", "", "Destination to send output to.")               // 7
+var optDebug = flag.String("debug", "", "Comma seperated list of debug flags.")     // 8
 
 var optDbConn = flag.String("conn", "", "Database (PostgreSQL) connection string.")
 var optDbName = flag.String("dbname", "", "Database (PostgreSQL) name.")
@@ -86,17 +90,24 @@ var optQuery = flag.String("sql", "", "Database (PostgreSQL) select to get data.
 var optUseSubData = flag.Bool("sub-data", false, "use .data as a field for array of data.")
 
 func init() {
-	flag.StringVar(optCfg, "C", "", "xyzzy.")
-	flag.BoolVar(optVersion, "V", false, "xyzzy.")
-	flag.BoolVar(optHelp, "H", false, "xyzzy.")
-	flag.StringVar(optCli, "c", "", "xyzzy.")
-	flag.StringVar(optData, "d", "", "xyzzy.")
-	flag.StringVar(optTmpl, "t", "", "xyzzy.")
-	flag.StringVar(optOut, "o", "", "xyzzy.")
-	flag.StringVar(optDebug, "D", "", "xyzzy.")
+	//	flag.StringVar(optCfg, "C", "", "Global Configuration File.")                   // 1
+	//	flag.BoolVar(optVersion, "V", false, "Display version of this program.")        // 2
+	//	flag.BoolVar(optHelp, "H", false, "Display usage/help information.")            // 3
+	//	flag.StringVar(optCli, "c", "", "Provide data on command line in JSON format.") // 4
+	//	flag.StringVar(optData, "d", "", "Provide data in a JSON or XML file.")         // 5
+	//	flag.StringVar(optTmpl, "t", "", "Template to process.")                        // 6
+	//	flag.StringVar(optOut, "o", "", "Destination to send output to.")               // 7
+	//	flag.StringVar(optDebug, "D", "", "Comma seperated list of debug flags.")       // 8
 }
 
+var gCfg ConfigFile
+
 func main() {
+
+	flag.Parse()
+
+	fns := flag.Args()
+	_ = fns
 
 	theData := make(map[string]interface{})
 	tmplList := make([]string, 0, 25)
@@ -121,19 +132,34 @@ func main() {
 	}
 
 	if *optVersion {
-		fmt.Printf("gtmpl version 0.0.4\n")
+		fmt.Printf("gtmpl version v1.0.4\n")
 		os.Exit(0)
 	}
 	if *optHelp {
-		usage()
+		Usage()
 		os.Exit(0)
 	}
+
+	fmt.Printf("AT: %s\n", godebug.LF())
 	if *optCfg != "" {
-		Cfg = *optCfg
+		err := ReadConfig.ReadFile(*optCfg, &gCfg)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s\n", err)
+			os.Exit(1)
+		}
 	}
 
 	if *optDbConn != "" {
-		db_x := ConnectToAnyDb("postgres", *optDbConn, *optDbName)
+		gCfg.DbConn = *optDbConn
+	}
+	if *optDbName != "" {
+		gCfg.DbName = *optDbName
+	}
+
+	fmt.Printf("optQuery == ->%s<- AT: %s\n", *optQuery, godebug.LF())
+	if *optQuery != "" {
+		fmt.Printf("AT: %s\n", godebug.LF())
+		db_x := ConnectToAnyDb("postgres", gCfg.DbConn, gCfg.DbName)
 		if db_x == nil {
 			fmt.Fprintf(os.Stderr, "%sUnable to connection to database: s\n", MiscLib.ColorRed, MiscLib.ColorReset)
 			os.Exit(1)
@@ -161,6 +187,7 @@ func main() {
 		}
 	}
 
+	fmt.Printf("AT: %s\n", godebug.LF())
 	if *optCli != "" {
 		dt := *optCli
 		mergeData([]byte(dt))
@@ -174,6 +201,8 @@ func main() {
 		}
 		mergeData(dt)
 	}
+
+	fmt.Printf("AT: %s\n", godebug.LF())
 	if *optTmpl != "" {
 		tmplOpt = *optTmpl
 		// if dir - find all ./*.tmpl files and put those in list, if file just add to processing list.
@@ -193,34 +222,26 @@ func main() {
 			os.Exit(1)
 		}
 	}
-	if *optOut != "" {
-		outOpt = *optOut
-	}
-	if outOpt == "" {
-		fmt.Fprintf(os.Stderr, "Usage: --out must be specified\n")
-		os.Exit(1)
-	}
 
+	fmt.Printf("AT: %s\n", godebug.LF())
 	// if --tmpl is a directory then --out must be a directory -check-
 	if tmplIsDir {
-		if !filelib.ExistsIsDir(outOpt) {
-			fmt.Fprintf(os.Stderr, "if tempalte input is a directory the --out must also specify a directory, out=%s\n", outOpt)
+		if !filelib.ExistsIsDir(*optOut) {
+			fmt.Fprintf(os.Stderr, "if tempalte input is a directory the --out must also specify a directory, out=%s\n", *optOut)
 			os.Exit(3)
 		}
 	}
 
-	var gCfg ConfigFile
-	if Cfg != "" {
-		gCfg = ReadConfig(Cfg)
-	}
-
 	if DbOn["echo_input"] {
+		fmt.Printf("AT: %s\n", godebug.LF())
 		fmt.Printf("Data: %s\n", godebug.SVarI(theData))
 		fmt.Printf("gCfg: %s\n", godebug.SVarI(gCfg))
 		fmt.Printf("TMPL files tmplList: %s\n", godebug.SVarI(tmplList))
 	}
 
 	for tn, tf := range tmplList {
+		fmt.Printf("AT: %s\n", godebug.LF())
+
 		//create a new template with some name
 		tmpl := template.New(fmt.Sprintf("tmpl_%d", tn)).Funcs(sprig.TxtFuncMap())
 
@@ -257,9 +278,9 @@ func main() {
 			bn := filelib.RmExt(tf) // strip off .tmpl - leaving basename
 			// TODO - xyzzy - if not .tmpl on end - then ERROR --------------------------------------- <<<<<<<<<<<<<<<<<<<<<<<<<<<<
 			bn = filepath.Base(bn) // just the name
-			ofn = outOpt + "/" + bn
+			ofn = *optOut + "/" + bn
 		} else {
-			ofn = outOpt
+			ofn = *optOut
 		}
 		if DbOn["file_name"] {
 			fmt.Printf("Output file name with path [%s]\n", ofn)
@@ -282,28 +303,7 @@ func main() {
 	}
 }
 
-// -------------------------------------------------------------------------------------------------
-func ReadConfig(fn string) (rv ConfigFile) {
-	data, err := ioutil.ReadFile(fn)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Must supply config file %s, errror=%s\n", fn, err)
-		os.Exit(1)
-	}
-
-	err = json.Unmarshal(data, &rv)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error parsing %s, errror=%s\n", fn, err)
-		os.Exit(1)
-	}
-	return
-}
-
-func usage() {
-	fmt.Printf(`gtmpl version 0.0.4 
-
---cfg | -C <fn>				Config file, cfg.json for example.
---cli | -c "JSON-data"		Data in JSON format to use to substitute into template.
---data | -d <fn>			Data in JSON format in a file.
-
-`)
+var Usage = func() {
+	fmt.Fprintf(os.Stderr, "Usage: %s\n", os.Args[0])
+	flag.PrintDefaults()
 }

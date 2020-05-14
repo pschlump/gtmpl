@@ -1,3 +1,5 @@
 {
 	"name": "gtmpl"
+	,"dbconn": "user=pschlump dbname=q8s port=5432 host=127.0.0.1 sslmode=disable" 
+	,"dbname": "q8s" 
 }
