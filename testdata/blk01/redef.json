@@ -1,0 +1,12 @@
+{
+	  "api-partial": "/api/redef"
+	, "api-full": "/index.html?page_name=/api/redef"
+	, "Base": "blk01.tmpl"
+	, "ExtendWith":[ "redef.tmpl" ]
+	, "Query": [
+		{
+			  "set": "data"
+			, "select": "select * from t_ymux_documents"
+		}
+	]
+}

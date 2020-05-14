@@ -45,6 +45,7 @@ import (
 	"github.com/pschlump/MiscLib"
 	"github.com/pschlump/filelib"
 	"github.com/pschlump/godebug"
+	"github.com/pschlump/ms"
 	"github.com/pschlump/sprig"
 	"gitlab.com/pschlump/PureImaginationServer/ReadConfig"
 )
@@ -83,7 +84,8 @@ var optData = flag.String("data", "", "Provide data in a JSON or XML file.")    
 var optTmpl = flag.String("tmpl", "", "Template to process.")                       // 6
 var optOut = flag.String("out", "", "Destination to send output to.")               // 7
 var optDebug = flag.String("debug", "", "Comma seperated list of debug flags.")     // 8
-var optTmplList = flag.String("tmpl-list", "", "Template to process.")              // 6
+var optTmplList = flag.String("tmpl-list", "", "Template list to parse.")           // 9
+var optExtend = flag.String("tmpl-extend", "", "Template to process with extend.")  // 10
 
 var optDbConn = flag.String("conn", "", "Database (PostgreSQL) connection string.")
 var optDbName = flag.String("dbname", "", "Database (PostgreSQL) name.")
@@ -243,7 +245,82 @@ func main() {
 	if DbOn["db4"] {
 		fmt.Printf("AT: %s\n", godebug.LF())
 	}
-	if *optTmplList != "" {
+	if *optExtend != "" {
+		// *optExtend is a template name that will have an "extend" in it.
+		if !filelib.Exists(*optExtend) {
+			fmt.Printf("Missing File ->%s<-\n", *optExtend)
+		} else {
+
+			name := fmt.Sprintf("derived_%s", *optExtend)
+			tmpl := template.New(name)
+
+			rtFuncMap := template.FuncMap{
+				"Center":      ms.CenterStr,   //
+				"PadR":        ms.PadOnRight,  //
+				"PadL":        ms.PadOnLeft,   //
+				"PicTime":     ms.PicTime,     //
+				"FTime":       ms.StrFTime,    //
+				"PicFloat":    ms.PicFloat,    //
+				"nvl":         ms.Nvl,         //
+				"Concat":      ms.Concat,      //
+				"title":       strings.Title,  // The name "title" is what the function will be called in the template text.
+				"ifDef":       ms.IfDef,       //
+				"ifIsDef":     ms.IfIsDef,     //
+				"ifIsNotNull": ms.IfIsNotNull, //
+				// From: https://stackoverflow.com/questions/21482948/how-to-print-json-on-golang-template/21483211
+				// "marshal": func(v interface{}) template.JS {
+				"marshal": func(v interface{}) string {
+					a, _ := json.Marshal(v)
+					// return template.JS(a)
+					return string(a)
+				},
+				"emptyList": func(v []string) bool {
+					// fmt.Fprintf(os.Stderr, "%s v=%s %s\n", MiscLib.ColorRed, godebug.SVarI(v), MiscLib.ColorReset)
+					// if len(v) == 0 {
+					// 	return true
+					// } else {
+					// 	return false
+					// }
+					return len(v) == 0
+				},
+
+				// "import": ...			// Import file at run time.
+
+				// I think that the binding time is wrong on this.  We need to change the template and pull in the base
+				// at "Parse" time not at "Execute" time.
+				"extend": func(vv string) string {
+					fmt.Fprintf(os.Stderr, "Extend Called: %s at:%s\n", vv, godebug.LF())
+					var baseTmpl *template.Template
+					baseName := filepath.Base(vv)
+					baseTmpl = template.New(baseName)
+
+					b, err := ioutil.ReadFile(vv)
+					if err != nil {
+						fmt.Printf("AT: %s error: %s\n", godebug.LF(), err)
+					}
+					s := string(b)
+
+					baseTmpl, err = baseTmpl.Parse(s)
+					if err != nil {
+						fmt.Printf("AT: %s error: %s\n", godebug.LF(), err)
+					}
+
+					// monkey patch in all of 'tmpl'(closure) into baseTmpl
+					ts := tmpl.Templates()
+					for _, tt := range ts {
+						baseTmpl.AddParseTree(tt.Name(), tt.Tree)
+					}
+
+					tmpl = baseTmpl // replace 'tmpl' with baseTmpl
+
+					return ""
+				},
+			}
+
+			tmpl = tmpl.Funcs(rtFuncMap)
+		}
+
+	} else if *optTmplList != "" {
 		var fp *os.File
 		if DbOn["db4"] {
 			fmt.Printf("AT: %s\n", godebug.LF())
