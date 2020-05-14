@@ -83,6 +83,7 @@ var optData = flag.String("data", "", "Provide data in a JSON or XML file.")    
 var optTmpl = flag.String("tmpl", "", "Template to process.")                       // 6
 var optOut = flag.String("out", "", "Destination to send output to.")               // 7
 var optDebug = flag.String("debug", "", "Comma seperated list of debug flags.")     // 8
+var optTmplList = flag.String("tmpl-list", "", "Template to process.")              // 6
 
 var optDbConn = flag.String("conn", "", "Database (PostgreSQL) connection string.")
 var optDbName = flag.String("dbname", "", "Database (PostgreSQL) name.")
@@ -140,7 +141,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	fmt.Printf("AT: %s\n", godebug.LF())
+	// fmt.Printf("AT: %s\n", godebug.LF())
 	if *optCfg != "" {
 		err := ReadConfig.ReadFile(*optCfg, &gCfg)
 		if err != nil {
@@ -156,9 +157,9 @@ func main() {
 		gCfg.DbName = *optDbName
 	}
 
-	fmt.Printf("optQuery == ->%s<- AT: %s\n", *optQuery, godebug.LF())
+	// fmt.Printf("optQuery == ->%s<- AT: %s\n", *optQuery, godebug.LF())
 	if *optQuery != "" {
-		fmt.Printf("AT: %s\n", godebug.LF())
+		// fmt.Printf("AT: %s\n", godebug.LF())
 		db_x := ConnectToAnyDb("postgres", gCfg.DbConn, gCfg.DbName)
 		if db_x == nil {
 			fmt.Fprintf(os.Stderr, "%sUnable to connection to database: s\n", MiscLib.ColorRed, MiscLib.ColorReset)
@@ -187,7 +188,7 @@ func main() {
 		}
 	}
 
-	fmt.Printf("AT: %s\n", godebug.LF())
+	// fmt.Printf("AT: %s\n", godebug.LF())
 	if *optCli != "" {
 		dt := *optCli
 		mergeData([]byte(dt))
@@ -202,7 +203,7 @@ func main() {
 		mergeData(dt)
 	}
 
-	fmt.Printf("AT: %s\n", godebug.LF())
+	// fmt.Printf("AT: %s\n", godebug.LF())
 	if *optTmpl != "" {
 		tmplOpt = *optTmpl
 		// if dir - find all ./*.tmpl files and put those in list, if file just add to processing list.
@@ -223,7 +224,7 @@ func main() {
 		}
 	}
 
-	fmt.Printf("AT: %s\n", godebug.LF())
+	// fmt.Printf("AT: %s\n", godebug.LF())
 	// if --tmpl is a directory then --out must be a directory -check-
 	if tmplIsDir {
 		if !filelib.ExistsIsDir(*optOut) {
@@ -239,66 +240,109 @@ func main() {
 		fmt.Printf("TMPL files tmplList: %s\n", godebug.SVarI(tmplList))
 	}
 
-	for tn, tf := range tmplList {
+	if DbOn["db4"] {
 		fmt.Printf("AT: %s\n", godebug.LF())
-
+	}
+	if *optTmplList != "" {
+		var fp *os.File
+		if DbOn["db4"] {
+			fmt.Printf("AT: %s\n", godebug.LF())
+		}
 		//create a new template with some name
-		tmpl := template.New(fmt.Sprintf("tmpl_%d", tn)).Funcs(sprig.TxtFuncMap())
-
-		if DbOn["proc_file"] {
-			fmt.Printf("%sprocessing [%s]%s\n", MiscLib.ColorGreen, tmpl, MiscLib.ColorReset)
+		name := fmt.Sprintf("tmpl_%s", *optTmplList)
+		tmpl := template.New(name).Funcs(sprig.TxtFuncMap())
+		fns := strings.Split(*optTmplList, ",")
+		for ii, fn := range fns {
+			if !filelib.Exists(fn) {
+				fmt.Printf("Missing File %d, ->%s<-\n", ii, fn)
+			}
 		}
-
-		// read in template, parse it
-		tmplFn := ""
-		if tmplIsDir {
-			tmplFn = tmplOpt + "/" + tf
-		} else {
-			tmplFn = tf
+		if DbOn["db4"] {
+			fmt.Printf("AT: %s - fns = %s\n", godebug.LF(), godebug.SVar(fns))
 		}
-		if DbOn["file_name"] {
-			fmt.Printf("Template file name with path [%s]\n", tmplFn)
-		}
-		body, err := ioutil.ReadFile(tmplFn)
+		tmpl, err := tmpl.ParseFiles(fns...)
 		if err != nil {
-			fmt.Printf("Unable to open: %s error %s ", tmplFn, err)
-			break
+			fmt.Printf("Parse: error %s on %s, at:%s\n", err, *optTmplList, godebug.LF())
+			goto done
 		}
-
-		//parse some content and generate a template
-		tmpl, err = tmpl.Parse(string(body))
+		fp, err = filelib.Fopen(*optOut, "w")
 		if err != nil {
-			fmt.Printf("Parse: error %s on %s ", err, tmplFn)
-			break
+			fmt.Printf("Unable to open %s for output, error: %s ", *optOut, err)
+			goto done
 		}
-
-		// generate output file name
-		ofn := ""
-		if tmplIsDir {
-			bn := filelib.RmExt(tf) // strip off .tmpl - leaving basename
-			// TODO - xyzzy - if not .tmpl on end - then ERROR --------------------------------------- <<<<<<<<<<<<<<<<<<<<<<<<<<<<
-			bn = filepath.Base(bn) // just the name
-			ofn = *optOut + "/" + bn
-		} else {
-			ofn = *optOut
+		defer fp.Close()
+		if DbOn["db4"] {
+			fmt.Printf("%sAT: %s - defined = %s%s\n", MiscLib.ColorCyan, godebug.LF(), tmpl.DefinedTemplates(), MiscLib.ColorReset)
 		}
-		if DbOn["file_name"] {
-			fmt.Printf("Output file name with path [%s]\n", ofn)
-		}
-
-		fp, err := filelib.Fopen(ofn, "w")
-		if err != nil {
-			fmt.Printf("Unable to open %s for output, error: %s ", ofn, err)
-			break
-		}
-
-		//merge template 'tmpl' with content of 's'
-		// use output file
-		// err = tmpl.Execute(os.Stdout, theData)
-		err = tmpl.Execute(fp, theData)
+		err = tmpl.ExecuteTemplate(fp, "foo", theData)
 		if err != nil {
 			fmt.Printf("Execute: %s\n", err)
-			return
+			goto done
+		}
+	done:
+	} else {
+		for tn, tf := range tmplList {
+			// fmt.Printf("AT: %s\n", godebug.LF())
+
+			//create a new template with some name
+			tmpl := template.New(fmt.Sprintf("tmpl_%d", tn)).Funcs(sprig.TxtFuncMap())
+
+			if DbOn["proc_file"] {
+				fmt.Printf("%sprocessing [%s]%s\n", MiscLib.ColorGreen, tmpl, MiscLib.ColorReset)
+			}
+
+			// read in template, parse it
+			tmplFn := ""
+			if tmplIsDir {
+				tmplFn = tmplOpt + "/" + tf
+			} else {
+				tmplFn = tf
+			}
+			if DbOn["file_name"] {
+				fmt.Printf("Template file name with path [%s]\n", tmplFn)
+			}
+			body, err := ioutil.ReadFile(tmplFn)
+			if err != nil {
+				fmt.Printf("Unable to open: %s error %s ", tmplFn, err)
+				break
+			}
+
+			//parse some content and generate a template
+			tmpl, err = tmpl.Parse(string(body))
+			if err != nil {
+				fmt.Printf("Parse: error %s on %s ", err, tmplFn)
+				break
+			}
+
+			// generate output file name
+			ofn := ""
+			if tmplIsDir {
+				bn := filelib.RmExt(tf) // strip off .tmpl - leaving basename
+				// TODO - xyzzy - if not .tmpl on end - then ERROR --------------------------------------- <<<<<<<<<<<<<<<<<<<<<<<<<<<<
+				bn = filepath.Base(bn) // just the name
+				ofn = *optOut + "/" + bn
+			} else {
+				ofn = *optOut
+			}
+			if DbOn["file_name"] {
+				fmt.Printf("Output file name with path [%s]\n", ofn)
+			}
+
+			fp, err := filelib.Fopen(ofn, "w")
+			if err != nil {
+				fmt.Printf("Unable to open %s for output, error: %s ", ofn, err)
+				break
+			}
+			defer fp.Close()
+
+			//merge template 'tmpl' with content of 's'
+			// use output file
+			// err = tmpl.Execute(os.Stdout, theData)
+			err = tmpl.Execute(fp, theData)
+			if err != nil {
+				fmt.Printf("Execute: %s\n", err)
+				return
+			}
 		}
 	}
 }
