@@ -1,0 +1,15 @@
+{
+	"Template": [ "base-table.html", "lof.html" ],
+	"JsonLayout": null,
+	"TempalteSet": null,
+	"SelectData": [
+		{
+			"to":   "test1",
+			"stmt": "select * from t_ymux_documents where user_id = $1",
+			"bind": {
+				"$1": "user_id"
+			}
+		}
+	],
+	"Test": null
+}

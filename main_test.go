@@ -183,5 +183,47 @@ func SetupDatabase() {
 	}
 }
 
+func Test_ReadJsonTemplateConfigFile(t *testing.T) {
+	// func ReadJsonTemplateConfigFile(fn string) (ds JsonTemplateRunnerType, err error) {
+	ds, err := ReadJsonTemplateConfigFile("./testdata/testTemplateConfig1.json")
+	if db823 {
+		fmt.Printf("%s\n", godebug.SVarI(ds))
+	}
+	if err != nil {
+		t.Errorf("Error error: %s\n", err)
+	}
+
+	expect := `{
+	"Template": [
+		"base-table.html",
+		"lof.html"
+	],
+	"JsonLayout": null,
+	"TempalteSet": null,
+	"SelectData": [
+		{
+			"To": "test1",
+			"Stmt": "select * from t_ymux_documents where user_id = $1",
+			"Bind": {
+				"$1": "user_id"
+			},
+			"ErrOn": ""
+		}
+	],
+	"Test": null
+}`
+	if godebug.SVarI(ds) != expect {
+		t.Errorf("Error Unexpected Results\n")
+	}
+}
+
+//func TmplProcess(
+//	item string, //  "page_name", "partial" etc.
+//	tmpl_name string, // .html/.tmpl file or .json file with data+selects+templates
+//	dataFunc func(name string) string,
+//) (tmpl_rendered string, status int, err error) {
+
 var db821 = false
-var db822 = true
+var db822 = false
+var db823 = false
+var db824 = false

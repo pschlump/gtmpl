@@ -46,7 +46,7 @@ import (
 
 	Set of request for template
 
-		"template_set": {
+		"TemplateSet": {
 			"page_name":
 				{ "template": [ "full_page.html", "extend1.tmpl" ] }
 			, "partial":
@@ -74,7 +74,7 @@ type DataType struct {
 	To    string // Name of data item to place data in.
 	Stmt  string // SQL ro run
 	Bind  map[string]string
-	ErrOn string // xyzzy - needs work
+	ErrOn string // Xyzzy - needs work
 }
 
 type LayoutItemType struct {
@@ -88,37 +88,34 @@ type TemplateSetType struct {
 }
 
 type JsonTemplateRunnerType struct {
-	TemplateList []string                   `json:"template"`
-	JsonLayout   []LayoutItemType           `json:"jsonLayout"`
+	TemplateList []string                   `json:"Template"`
+	JsonLayout   []LayoutItemType           `json:"JsonLayout"`
 	TemplateSet  map[string]TemplateSetType `json:"TempalteSet"`
 	Data         []DataType                 `json:"SelectData"`
-	Test         map[string]interface{}     // xyzzy - TBD
+	Test         map[string]interface{}     // Xyzzy - TBD
 }
 
 var gPath string
 
 func init() {
-	gPath = "./testdata;./testdata/list-of-fiels" // xyzzy - pull from config / gConfig
-
+	gPath = "./testdata;./testdata/list-of-fiels" // Xyzzy - pull from config / gConfig
 }
 
-// xyzzy - test
 func TmplProcess(
 	item string, //  "page_name", "partial" etc.
 	tmpl_name string, // .html/.tmpl file or .json file with data+selects+templates
+	dataFunc func(name string) string,
 ) (tmpl_rendered string, status int, err error) {
-	fx := func(s string) string {
-		return "" // xyzzy - implement!
-	}
-	_, _, tmpl_rendered, status, err = tmplProcessInternal(item, tmpl_name, gPath, fx)
+	_, _, tmpl_rendered, status, err = tmplProcessInternal(item, tmpl_name, gPath, dataFunc)
 	if status == 200 || err == nil {
 		return
 	}
-	fmt.Printf("Error On Template: status=%d error:%s\n", status, err)
+	if db115 {
+		fmt.Printf("Error On Template: status=%d error:%s\n", status, err)
+	}
 	return
 }
 
-// xyzzy - test
 func tmplProcessInternal(
 	item string, //  "page_name", "partial" etc.
 	tmpl_name string, // .html/.tmpl file or .json file with data+selects+templates
@@ -143,7 +140,7 @@ func tmplProcessInternal(
 
 	// 3. if .json
 	//		a. Read/Deciperh .json file
-	ds, err := readJsonTemplateConfigFile(full_path)
+	ds, err := ReadJsonTemplateConfigFile(full_path)
 	if err != nil {
 		fmt.Printf("Error: %s at %s\n", err, godebug.LF())
 		return
@@ -339,9 +336,9 @@ func getPos(s string) (n int) {
 	return
 }
 
-// ds, err := readJsonTemplateConfigFile(full_paty)
+// ds, err := ReadJsonTemplateConfigFile(full_paty)
 // xyzzy - test
-func readJsonTemplateConfigFile(fn string) (ds JsonTemplateRunnerType, err error) {
+func ReadJsonTemplateConfigFile(fn string) (ds JsonTemplateRunnerType, err error) {
 
 	// type JsonTemplateRunnerType struct {
 	buf, e0 := ioutil.ReadFile(fn)
@@ -379,4 +376,5 @@ func TmplTest(
 	return
 }
 
-var db114 = true
+var db114 = false
+var db115 = false
