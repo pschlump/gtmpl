@@ -5,9 +5,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"strconv"
 	"strings"
 
+	"github.com/pschlump/Go-FTL/server/sizlib"
 	"github.com/pschlump/filelib"
+	"github.com/pschlump/godebug"
+	"gitlab.com/pschlump/PureImaginationServer/ymux"
 )
 
 /*
@@ -90,8 +94,7 @@ type JsonTemplateRunnerType struct {
 var gPath string
 
 func init() {
-	// xyzzy - pull from config / gConfig
-	gPath = "./testdata;./testdata/list-of-fiels"
+	gPath = "./testdata;./testdata/list-of-fiels" // xyzzy - pull from config / gConfig
 
 }
 
@@ -131,9 +134,23 @@ func tmplProcessInternal(
 	// 3. if .json
 	//		a. Read/Deciperh .json file
 	ds, err := readJsonTemplateConfigFile(full_path)
+	if err != nil {
+		// xyzzy
+	}
+
+	mdata := make(map[string]interface{})
 
 	//		c. Run the .SQL section to collect the data
-	data, mdata, err := ProcessSQL(ds)
+	tdata, err := ProcessSQL(ds)
+	if err != nil {
+		// xyzzy
+	}
+	mdata["data"] = tdata
+
+	tmp := make(map[string]string)
+	s := godebug.SVar(ds.JsonLayout)
+	json.Unmarshal([]byte(s), &tmp)
+	mdata["jsonLayout"] = tmp
 
 	//		b. Read set of f temlates for "item" (do a parse on a list of items)
 	//    	d. Run the template with the data
@@ -157,6 +174,8 @@ func tmplProcessInternal(
 // full_path, file_type, err := PathFind(path, tmpl_name)
 // PathFind searches each location in the path for the specified file.  It returns the first full file name
 // that is found or an error of "Not Found"
+// path - top level directory to search in.
+// fn - file name or pattern to search for.
 func PathFind(path, fn string) (full_path, file_type string, err error) {
 	err = fmt.Errorf("Not Found")
 	ss := strings.Split(path, ";")
@@ -179,11 +198,85 @@ func renderTemplate(mdata map[string]interface{}, fn ...string) (tmpl_rendered s
 	return
 }
 
-// data, mdata, err := ProcessSQL(ds)
-func ProcessSQL(ds JsonTemplateRunnerType) (data string, mdata map[string]interface{}, err error) {
+/*
+type DataType struct {
+	To    string // Name of data item to place data in.
+	Stmt  string // SQL ro run
+	Bind  map[string]string
+	ErrOn string // xyzzy - needs work
+}
+
+type LayoutItemType struct {
+	MatchTo     string `json:"match"`
+	TemplateFor string `json:"for"`
+}
+
+type TemplateSetType struct {
+	TemplateList []string `json:"template"`
+	Target       string   `json:"target"`
+}
+
+type JsonTemplateRunnerType struct {
+	TemplateList []string                   `json:"template"`
+	JsonLayout   []LayoutItemType           `json:"jsonLayout"`
+	TemplateSet  map[string]TemplateSetType `json:"TempalteSet"`
+	Data         []DataType                 `json:"SelectData"`
+	Test         map[string]interface{}     // xyzzy - TBD
+}
+*/
+
+// mdata, err := ProcessSQL(ds)
+func ProcessSQL(ds JsonTemplateRunnerType) (mdata map[string]interface{}, err error) {
 
 	// xyzzy
+	// goal mdata["data"] with all the data from each of the items in ds.Data
 
+	mdata = make(map[string]interface{})
+	mdata["data"] = make(map[string]interface{})
+
+	for _, dd := range ds.Data {
+		to := dd.To
+		stmt := dd.Stmt
+		indata := make([]string, len(dd.Bind), len(dd.Bind))
+		for jj := 0; jj < len(dd.Bind); jj++ {
+			indata[jj] = ""
+		}
+		for key, vv := range dd.Bind {
+			pos := getPos(key)
+			if pos >= len(indata) {
+				for jj := len(indata); jj < pos; jj++ {
+					indata[jj] = ""
+				}
+			}
+			indata[pos] = vv
+		}
+		indata2 := make([]interface{}, len(indata), len(indata))
+		for rr := range indata {
+			indata2[rr] = indata[rr]
+		}
+		rows, err := ymux.SQLQuery(stmt, indata2...)
+		if err != nil {
+			fmt.Printf("Error: %s error:%s data:%s\n", stmt, err, godebug.SVar(indata))
+			mdata[to] = "error"
+		} else {
+			data, _, _ := sizlib.RowsToInterface(rows)
+			mdata[to] = data
+		}
+	}
+
+	if db114 {
+		fmt.Printf("Results of SQL : %s\n", godebug.SVarI(mdata))
+	}
+
+	return
+}
+
+func getPos(s string) (n int) {
+	nn, _ := strconv.ParseInt(s[1:], 10, 64)
+	n = int(nn)
+	if n < 1 {
+		n = 1
+	}
 	return
 }
 
@@ -220,3 +313,5 @@ func TmplTest(
 
 	return
 }
+
+var db114 = true

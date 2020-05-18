@@ -164,7 +164,7 @@ func main() {
 		// fmt.Printf("AT: %s\n", godebug.LF())
 		db_x := ConnectToAnyDb("postgres", gCfg.DbConn, gCfg.DbName)
 		if db_x == nil {
-			fmt.Fprintf(os.Stderr, "%sUnable to connection to database: s\n", MiscLib.ColorRed, MiscLib.ColorReset)
+			fmt.Fprintf(os.Stderr, "%sUnable to connection to database: %s\n", MiscLib.ColorRed, MiscLib.ColorReset)
 			os.Exit(1)
 		}
 		data, err := SelData2(db_x.Db, *optQuery)
@@ -365,7 +365,7 @@ func main() {
 			tmpl := template.New(fmt.Sprintf("tmpl_%d", tn)).Funcs(sprig.TxtFuncMap())
 
 			if DbOn["proc_file"] {
-				fmt.Printf("%sprocessing [%s]%s\n", MiscLib.ColorGreen, tmpl, MiscLib.ColorReset)
+				fmt.Printf("%sprocessing [%v]%s\n", MiscLib.ColorGreen, tn, MiscLib.ColorReset)
 			}
 
 			// read in template, parse it
