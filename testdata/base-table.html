@@ -1,9 +1,9 @@
 {{define "render"}}
-	{{block "mac_before"}}{{end}}
+	{{block "mac_before" . }} {{end}}
 	<table class="table">
 		<thead>
 			<tr>
-				{{block "mac_header"}}
+				{{block "mac_header" . }}
 				<th>
 					Default Headder: /Users/pschlump/go/src/github.com/pschlump/gtmpl/testdata/base-table.html
 				</th>
@@ -14,7 +14,7 @@
 			<tr>
 		</thead>
 		<tbody>
-				{{block "mac_body"}}
+				{{block "mac_body" . }}
 				<th>
 					<td>
 						Default Body
@@ -34,5 +34,5 @@
 			{{end}}
 		</tbody>
 	</table>
-	{{block "mac_after"}}{{end}}
+	{{block "mac_after" . }} {{end}}
 {{end}}
