@@ -1,0 +1,25 @@
+{{define "mac_header"}}
+			<th>
+				Original File Name
+			</th>
+			<th>
+				Action
+			</th>
+{{end}}
+
+{{define "mac_body"}}
+	{{range $index, $row := .data}}
+		<th>
+			<td>
+				{{$row.original_file_name}}
+			<td>
+			<td>
+				<button class="bind-this" data-id="{{$row.id}}" data-click-run="run-form">Run</button>
+			<td>
+		</th>
+	{{end}}
+{{end}}
+
+{{define "mac_after"}}
+	<button>Upload New File</button>
+{{end}}

@@ -1,0 +1,21 @@
+{
+	"title": "List oF Files - Per User"
+	, select: [
+			{
+				"to": "data"
+				, "stmt": "select * from t_ymux_documents where user_id = $1"
+				, "bind": {
+					"$1": "user_id"
+				}
+			}
+	]
+	, "template": [ "base-table.html", "list-of-files/lof.html" ]
+	, "test": [
+				{
+					"data": { "user_id": "123" }
+				,	"expect": { 
+						"file": "list-of-files-expect1.html"
+					}
+				}
+	]
+}

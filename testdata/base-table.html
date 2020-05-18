@@ -1,0 +1,38 @@
+{{define "render"}}
+	{{block "mac_before"}}{{end}}
+	<table class="table">
+		<thead>
+			<tr>
+				{{block "mac_header"}}
+				<th>
+					Default Headder: /Users/pschlump/go/src/github.com/pschlump/gtmpl/testdata/base-table.html
+				</th>
+				<th>
+					Col 2 Default Headder
+				</th>
+				{{end}}
+			<tr>
+		</thead>
+		<tbody>
+				{{block "mac_body"}}
+				<th>
+					<td>
+						Default Body
+					<td>
+					<td>
+						Col 2 Default Body
+					<td>
+				</th>
+				<th>
+					<td>
+						Default Body
+					<td>
+					<td>
+						Col 2 Default Body
+					<td>
+				</th>
+			{{end}}
+		</tbody>
+	</table>
+	{{block "mac_after"}}{{end}}
+{{end}}
