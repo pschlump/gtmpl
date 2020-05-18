@@ -269,7 +269,6 @@ func ProcessSQL(ds *JsonTemplateRunnerType, getDataForSQL func(name string) stri
 	// goal mdata["data"] with all the data from each of the items in ds.Data
 
 	mdata = make(map[string]interface{})
-	mdata["data"] = make(map[string]interface{})
 
 	for _, dd := range ds.Data {
 		to := dd.To
@@ -331,7 +330,6 @@ func ProcessSQL(ds *JsonTemplateRunnerType, getDataForSQL func(name string) stri
 	return
 }
 
-// xyzzy - test
 func getPos(s string) (n int) {
 	nn, _ := strconv.ParseInt(s[1:], 10, 64)
 	n = int(nn)

@@ -152,6 +152,10 @@ func Test_ProcessSQL(t *testing.T) {
 		fmt.Printf("at:%s err:%s mdata=%s\n", godebug.LF(), err, godebug.SVarI(mdata))
 	}
 
+	if _, ok := mdata["test1"]; !ok {
+		t.Errorf("Expected some data back, did not get any")
+	}
+
 }
 
 var dbInit = false
