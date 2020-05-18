@@ -4,13 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"text/template"
 
 	"github.com/pschlump/Go-FTL/server/sizlib"
+	"github.com/pschlump/MiscLib"
 	"github.com/pschlump/filelib"
 	"github.com/pschlump/godebug"
+	"github.com/pschlump/sprig"
 	"gitlab.com/pschlump/PureImaginationServer/ymux"
 )
 
@@ -98,6 +102,7 @@ func init() {
 
 }
 
+// xyzzy - test
 func TmplProcess(
 	item string, //  "page_name", "partial" etc.
 	tmpl_name string, // .html/.tmpl file or .json file with data+selects+templates
@@ -110,6 +115,7 @@ func TmplProcess(
 	return
 }
 
+// xyzzy - test
 func tmplProcessInternal(
 	item string, //  "page_name", "partial" etc.
 	tmpl_name string, // .html/.tmpl file or .json file with data+selects+templates
@@ -122,7 +128,7 @@ func tmplProcessInternal(
 	// 2. if .html/.tmpl - just process template and return
 	if file_type == ".html" || file_type == ".tmpl" {
 		mdata := map[string]interface{}{}
-		tmpl_rendered, err = renderTemplate(mdata, full_path)
+		tmpl_rendered, err = RenderTemplate(mdata, full_path)
 		return
 	}
 
@@ -165,7 +171,7 @@ func tmplProcessInternal(
 		}
 		templateList = aa.TemplateList
 	}
-	tmpl_rendered, err = renderTemplate(mdata, templateList...)
+	tmpl_rendered, err = RenderTemplate(mdata, templateList...)
 
 	//		e. Return results if successful.
 	return
@@ -190,10 +196,36 @@ func PathFind(path, fn string) (full_path, file_type string, err error) {
 	return
 }
 
-// tmpl_rendered, err = renderTemplate(mdata, full_path)
-func renderTemplate(mdata map[string]interface{}, fn ...string) (tmpl_rendered string, err error) {
+// tmpl_rendered, err = RenderTemplate(mdata, full_path)
+// xyzzy - test
+func RenderTemplate(mdata map[string]interface{}, fns ...string) (tmpl_rendered string, err error) {
 
-	// xyzzy
+	var fp *os.File
+	if DbOn["db4a"] {
+		fmt.Printf("Top of RenderTemplate AT: %s\n", godebug.LF())
+	}
+	//create a new template with some name
+	name := fmt.Sprintf("tmpl_%s", *optTmplList)
+	tmpl := template.New(name).Funcs(sprig.TxtFuncMap())
+	tmpl, e0 := tmpl.ParseFiles(fns...)
+	if e0 != nil {
+		err = fmt.Errorf("Parse: error %s on %s, at:%s\n", e0, *optTmplList, godebug.LF())
+		return
+	}
+	fp, e0 = filelib.Fopen(*optOut, "w")
+	if e0 != nil {
+		err = fmt.Errorf("Unable to open %s for output, error: %s ", *optOut, e0)
+		return
+	}
+	defer fp.Close()
+	if DbOn["db4a"] {
+		fmt.Printf("%sAT: %s - defined = %s%s\n", MiscLib.ColorCyan, godebug.LF(), tmpl.DefinedTemplates(), MiscLib.ColorReset)
+	}
+	e0 = tmpl.ExecuteTemplate(fp, "render", mdata)
+	if e0 != nil {
+		err = fmt.Errorf("Execute Error: %s\n", e0)
+		return
+	}
 
 	return
 }
@@ -226,6 +258,7 @@ type JsonTemplateRunnerType struct {
 */
 
 // mdata, err := ProcessSQL(ds)
+// xyzzy - test
 func ProcessSQL(ds JsonTemplateRunnerType) (mdata map[string]interface{}, err error) {
 
 	// xyzzy
@@ -271,6 +304,7 @@ func ProcessSQL(ds JsonTemplateRunnerType) (mdata map[string]interface{}, err er
 	return
 }
 
+// xyzzy - test
 func getPos(s string) (n int) {
 	nn, _ := strconv.ParseInt(s[1:], 10, 64)
 	n = int(nn)
@@ -281,6 +315,7 @@ func getPos(s string) (n int) {
 }
 
 // ds, err := readJsonTemplateConfigFile(full_paty)
+// xyzzy - test
 func readJsonTemplateConfigFile(fn string) (ds JsonTemplateRunnerType, err error) {
 
 	// type JsonTemplateRunnerType struct {
@@ -300,6 +335,8 @@ func readJsonTemplateConfigFile(fn string) (ds JsonTemplateRunnerType, err error
 
 // data, mdata, err := processSQL(ds)
 
+// xyzzy - implement
+// xyzzy - test
 func TmplTest(
 	item string, //  "page_name", "partial" etc.
 	tmpl string, // .tmpl file or .json file with data+selects+templates
