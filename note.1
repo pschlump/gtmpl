@@ -1,0 +1,110 @@
+
+https://github.com/pschlump/gtmpl/pull/new/use-pg-test
+
+
+Render / Template - and Test - 4hrs
+
+
+
+
+
+		1. Run multiple selects
+			
+			select: [
+				{
+					"to": "name"
+					"stmt": "select..."
+					"errror_on": 0 rows etc.
+				}
+				, {
+					"to": "name...x"
+					"stmt": "select..."
+					"errror_on": 0 rows etc.
+					"bind": [
+						"$1": "{{.name}}"
+					]
+				}
+			]
+
+		Bind values by name from GET/POST and previous queries
+
+		Run Template at the end
+
+
+			"template": [ "base.html", "tmpl1.html" ... ]
+
+
+		Set of request for template
+
+			"template_set": {
+				"page_name": 
+					{ "template": [ "full_page.html", "extend1.tmpl" ] }
+				, "partial":
+					{ "template":  [ "section.html", "extend1.tmpl" ]
+					, "target": "body"
+					}
+			}
+
+		Layout Info
+			"jsonLayout": {	
+				-- data for layout / style of layout
+			}
+
+		Testing
+			"test": [
+				{
+					"data": { "user_id": "123" }
+				,	"expect": ...
+				}
+			]
+
+
+Render Page
+	/api/tmpl-page?tmpl=Name  (.json file)
+Render Partial
+	/api/tmpl-partial?tmpl=Name  (.json file)
+?Combine Template + Data
+?	/api/tmpl-and-data?tmpl=Name&data=Name
+
+=>
+
+
+
+
+
+
+Build a "default" form for - any API end point and return it.
+	1. Form
+	2. Use render templates to generatee each section based on type
+	3. Have "fill-in" code (next/err-x401) stuff based on "errors" it can return.
+
+
+
+
+
+
+
+Template - 
+	{{ template "renderVerticalTable" .data .jsonLayout }}
+	{{ template "renderHorizontalTable" .data .jsonLayout }}
+
+	{{ template "renderStandardForm" .data .jsonLayout }}
+
+
+
+
+Processing Flow
+	Login -
+		1. render ./tmpl3/login.html -> page (partial)
+		2. Client attaches default form handler
+		3. user fill out form
+		4. click "Login" button ->
+		5. JS - default handler ->
+		6. Pulls "action" from form ->
+		7. Collects data then post to "action" ->
+		a. Server responds with call to /api/... -> JSON or 401/error
+		8. client displays error on return from call
+		8. client displays "next" page/partial 
+
+	data-next="2fa-enter.html"
+	data-error=`{"x401":"msg"}`
