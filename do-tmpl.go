@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	template "github.com/pschlump/extend"
+	"github.com/pschlump/extendsprig"
 	"github.com/pschlump/filelib"
 	"github.com/pschlump/godebug"
 	"gitlab.com/pschlump/PureImaginationServer/ymux"
@@ -230,7 +231,7 @@ func RenderTemplate(mdata map[string]interface{}, fns ...string) (tmpl_rendered 
 	}
 	//create a new template with some name
 	name := fmt.Sprintf("tmpl_%s", *optTmplList)
-	tmpl := template.New(name)
+	tmpl := template.New(name).Funcs(extendsprig.TxtFuncMap())
 	// 		.Option("missingkey=zero","missingvalue=empty")
 	//		.Funcs(extendsprig.TxtFuncMap()) // .Funcs(sprig.TxtFuncMap())
 	tmpl, e0 := tmpl.ParseFiles(fns...)
