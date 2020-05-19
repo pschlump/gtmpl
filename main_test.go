@@ -184,6 +184,9 @@ func SetupDatabase() {
 }
 
 func Test_ReadJsonTemplateConfigFile(t *testing.T) {
+
+	DbOn["db4a"] = true
+
 	// func ReadJsonTemplateConfigFile(fn string) (ds JsonTemplateRunnerType, err error) {
 	ds, err := ReadJsonTemplateConfigFile("./testdata/testTemplateConfig1.json")
 	if db823 {
@@ -199,7 +202,7 @@ func Test_ReadJsonTemplateConfigFile(t *testing.T) {
 		"lof.html"
 	],
 	"JsonLayout": null,
-	"TempalteSet": null,
+	"TemplateSet": null,
 	"SelectData": [
 		{
 			"To": "test1",
@@ -212,16 +215,41 @@ func Test_ReadJsonTemplateConfigFile(t *testing.T) {
 	],
 	"Test": null
 }`
-	if godebug.SVarI(ds) != expect {
-		t.Errorf("Error Unexpected Results\n")
+	got := godebug.SVarI(ds)
+	if got != expect {
+		ioutil.WriteFile(",c", []byte(expect), 0644)
+		ioutil.WriteFile(",d", []byte(got), 0644)
+		t.Errorf("Error Unexpected Results got ->%s<- expected ->%s<-\n", got, expect)
+	}
+
+	ds, err = ReadJsonTemplateConfigFile("./testdata/page-cfg.json")
+	if err != nil {
+		t.Errorf("Error error: %s\n", err)
 	}
 }
+
+// ==============================================================================================================================
 
 //func TmplProcess(
 //	item string, //  "page_name", "partial" etc.
 //	tmpl_name string, // .html/.tmpl file or .json file with data+selects+templates
 //	dataFunc func(name string) string,
 //) (tmpl_rendered string, status int, err error) {
+func Test_TmplProcess(t *testing.T) {
+
+	DbOn["db4a"] = true
+
+	data := map[string]string{
+		"user_id": "52bc4522-bed8-4ee4-73b3-be0ed73d7f1f",
+	}
+	fx := func(s string) string {
+		return data[s]
+	}
+	tmpl_rendered, status, err := TmplProcess("page", "page-cfg.json", fx)
+	fmt.Printf("->%s<- %d %s\n", tmpl_rendered, status, err)
+}
+
+// ==============================================================================================================================
 
 var db821 = false
 var db822 = false

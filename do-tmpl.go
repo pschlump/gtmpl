@@ -1,5 +1,13 @@
 package main
 
+// TODO - set the path / gPath
+// 		- test at top level
+// 		- fix TemplateSet to work.
+// 		- test a "set" of templates based on request type
+
+// TODO - Implement the "error" stuff
+// TODO - Implement the "test" stuff
+
 import (
 	"bufio"
 	"bytes"
@@ -9,14 +17,15 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"text/template"
 
-	"github.com/pschlump/Go-FTL/server/sizlib"
+	template "github.com/pschlump/extend"
 	"github.com/pschlump/filelib"
 	"github.com/pschlump/godebug"
-	"github.com/pschlump/sprig"
 	"gitlab.com/pschlump/PureImaginationServer/ymux"
 )
+
+// "github.com/pschlump/sprig"
+// "text/template"
 
 /*
 
@@ -83,14 +92,14 @@ type LayoutItemType struct {
 }
 
 type TemplateSetType struct {
-	TemplateList []string `json:"template"`
-	Target       string   `json:"target"`
+	TemplateList []string `json:"Template"`
+	Target       string   `json:"Target"`
 }
 
 type JsonTemplateRunnerType struct {
 	TemplateList []string                   `json:"Template"`
 	JsonLayout   []LayoutItemType           `json:"JsonLayout"`
-	TemplateSet  map[string]TemplateSetType `json:"TempalteSet"`
+	TemplateSet  map[string]TemplateSetType `json:"TemplateSet"`
 	Data         []DataType                 `json:"SelectData"`
 	Test         map[string]interface{}     // Xyzzy - TBD
 }
@@ -98,7 +107,7 @@ type JsonTemplateRunnerType struct {
 var gPath string
 
 func init() {
-	gPath = "./testdata;./testdata/list-of-fiels" // Xyzzy - pull from config / gConfig
+	gPath = "./testdata;./testdata/list-of-files" // Xyzzy - pull from config / gConfig
 }
 
 func TmplProcess(
@@ -142,7 +151,7 @@ func tmplProcessInternal(
 	//		a. Read/Deciperh .json file
 	ds, err := ReadJsonTemplateConfigFile(full_path)
 	if err != nil {
-		fmt.Printf("Error: %s at %s\n", err, godebug.LF())
+		fmt.Printf("File: %s Error: %s at %s\n", full_path, err, godebug.LF())
 		return
 	}
 
@@ -162,18 +171,29 @@ func tmplProcessInternal(
 	mdata["jsonLayout"] = tmp
 
 	//		b. Read set of f temlates for "item" (do a parse on a list of items)
-	//    	d. Run the template with the data
 	var templateList []string
 	if item == "" {
 		templateList = ds.TemplateList
 	} else {
 		aa, ok := ds.TemplateSet[item]
 		if !ok {
-			err = fmt.Errorf("Invalid/Missing item name >%s<\n", item)
+			err = fmt.Errorf("Invalid/Missing item name >%s< ds->%s<- at:%s\n", item, godebug.SVarI(ds), godebug.LF())
 			return
 		}
 		templateList = aa.TemplateList
 	}
+
+	for ii, tmpl_name := range templateList {
+		full_path, _, err := PathFind(path, tmpl_name)
+		if err != nil {
+			fmt.Printf("Missing file ->%s<-\n", tmpl_name)
+			templateList[ii] = "./testdata/empty.html"
+			continue
+		}
+		templateList[ii] = full_path
+	}
+
+	//    	d. Run the template with the data
 	tmpl_rendered, err = RenderTemplate(mdata, templateList...)
 
 	//		e. Return results if successful.
@@ -206,11 +226,14 @@ func PathFind(path, fn string) (full_path, file_type string, err error) {
 func RenderTemplate(mdata map[string]interface{}, fns ...string) (tmpl_rendered string, err error) {
 
 	if DbOn["db4a"] {
-		fmt.Printf("Top of RenderTemplate AT: %s\n", godebug.LF())
+		fmt.Printf("Top of RenderTemplate fns=%s AT: %s\n", godebug.SVarI(fns), godebug.LF())
 	}
 	//create a new template with some name
 	name := fmt.Sprintf("tmpl_%s", *optTmplList)
-	tmpl := template.New(name).Funcs(sprig.TxtFuncMap())
+	tmpl := template.New(name)
+	// 		.Option("missingkey=zero","missingvalue=empty")
+	// 		.Funcs(sprig.TxtFuncMap())
+	//		.Funcs(extendsprig.TxtFuncMap())
 	tmpl, e0 := tmpl.ParseFiles(fns...)
 	if e0 != nil {
 		err = fmt.Errorf("Parse: error %s on %s, at:%s\n", e0, *optTmplList, godebug.LF())
@@ -315,7 +338,7 @@ func ProcessSQL(ds *JsonTemplateRunnerType, getDataForSQL func(name string) stri
 			fmt.Printf("Error: %s error:%s data:%s\n", stmt, err, godebug.SVar(indata))
 			mdata[to] = fmt.Sprintf("Error: %s error:%s data:%s\n", stmt, err, godebug.SVar(indata))
 		} else {
-			data, _, _ := sizlib.RowsToInterface(rows)
+			data, _, _ := RowsToInterface(rows)
 			mdata[to] = data
 		}
 	}
@@ -337,7 +360,6 @@ func getPos(s string) (n int) {
 }
 
 // ds, err := ReadJsonTemplateConfigFile(full_paty)
-// xyzzy - test
 func ReadJsonTemplateConfigFile(fn string) (ds JsonTemplateRunnerType, err error) {
 
 	// type JsonTemplateRunnerType struct {

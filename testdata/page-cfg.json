@@ -1,0 +1,18 @@
+{
+	"TemplateSet": {
+		  "page": {
+			  "Template": [ "base-table.html", "lof2.html" ]
+			, "Target": "jQuety-Target"
+		}
+	},
+	"SelectData": [
+		{
+			"To": "test1",
+			"Stmt": "select * from t_ymux_documents where user_id = $1",
+			"Bind": {
+				"$1": "user_id"
+			},
+			"ErrOn": ""
+		}
+	]
+}
