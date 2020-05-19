@@ -232,8 +232,7 @@ func RenderTemplate(mdata map[string]interface{}, fns ...string) (tmpl_rendered 
 	name := fmt.Sprintf("tmpl_%s", *optTmplList)
 	tmpl := template.New(name)
 	// 		.Option("missingkey=zero","missingvalue=empty")
-	// 		.Funcs(sprig.TxtFuncMap())
-	//		.Funcs(extendsprig.TxtFuncMap())
+	//		.Funcs(extendsprig.TxtFuncMap()) // .Funcs(sprig.TxtFuncMap())
 	tmpl, e0 := tmpl.ParseFiles(fns...)
 	if e0 != nil {
 		err = fmt.Errorf("Parse: error %s on %s, at:%s\n", e0, *optTmplList, godebug.LF())

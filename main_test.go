@@ -158,6 +158,74 @@ func Test_ProcessSQL(t *testing.T) {
 
 }
 
+/*
+Expected Data
+	{
+		"test1": [
+			{
+				"blockerr": null,
+				"blockhash": null,
+				"blockno": null,
+				"created": "2020-01-30T05:03:56.37554+0000",
+				"document_file_name": null,
+				"document_hash": null,
+				"ethstatus": null,
+				"file_name": "./www/files/3c0da6cd8cddf7e9d6c2ae649f5fd5ab5271cfa1cc67a6f238cd001f21728839.xls",
+				"hash": null,
+				"id": "17da237a-2ff2-41db-51c9-93932181bd5b",
+				"note": null,
+				"orig_file_extension": ".xls",
+				"orig_file_name": "post-tx.xls",
+				"signature": null,
+				"txid": null,
+				"updated": "2020-05-02T20:14:35.72913+0000",
+				"url_file_name": "/files/3c0da6cd8cddf7e9d6c2ae649f5fd5ab5271cfa1cc67a6f238cd001f21728839.xls",
+				"user_id": "52bc4522-bed8-4ee4-73b3-be0ed73d7f1f"
+			},
+			{
+				"blockerr": null,
+				"blockhash": null,
+				"blockno": null,
+				"created": "2020-01-31T15:25:19.13184+0000",
+				"document_file_name": null,
+				"document_hash": null,
+				"ethstatus": null,
+				"file_name": "./www/files/3c0da6cd8cddf7e9d6c2ae649f5fd5ab5271cfa1cc67a6f238cd001f21728839.xls",
+				"hash": null,
+				"id": "f98c32dd-00c2-4080-5af1-debe903d8a48",
+				"note": null,
+				"orig_file_extension": ".xls",
+				"orig_file_name": "post-tx.xls",
+				"signature": null,
+				"txid": null,
+				"updated": "2020-05-02T20:14:35.72913+0000",
+				"url_file_name": "/files/3c0da6cd8cddf7e9d6c2ae649f5fd5ab5271cfa1cc67a6f238cd001f21728839.xls",
+				"user_id": "52bc4522-bed8-4ee4-73b3-be0ed73d7f1f"
+			},
+			{
+				"blockerr": null,
+				"blockhash": null,
+				"blockno": null,
+				"created": "2020-05-07T19:48:10.77581+0000",
+				"document_file_name": null,
+				"document_hash": null,
+				"ethstatus": null,
+				"file_name": "./www/files/cbafec6c72cc6689c18d65835324b10ce3637ce5a8da5c4115c8d52013c9dcd3.xlsx",
+				"hash": null,
+				"id": "473e1222-d5e3-484f-5ff2-6477216cefc0",
+				"note": null,
+				"orig_file_extension": ".xlsx",
+				"orig_file_name": "post-tx.xlsx",
+				"signature": null,
+				"txid": null,
+				"updated": "2020-05-07T19:48:11.83381+0000",
+				"url_file_name": "/files/cbafec6c72cc6689c18d65835324b10ce3637ce5a8da5c4115c8d52013c9dcd3.xlsx",
+				"user_id": "52bc4522-bed8-4ee4-73b3-be0ed73d7f1f"
+			}
+		]
+	}
+*/
+
 var dbInit = false
 
 // DB is the connection info to the database.  It must be external to be used.
