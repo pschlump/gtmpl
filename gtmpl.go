@@ -46,6 +46,7 @@ import (
 	sprig "github.com/pschlump/extend/extendsprig"
 	"github.com/pschlump/filelib"
 	"github.com/pschlump/godebug"
+	"github.com/pschlump/gtmpl/tl"
 	"github.com/pschlump/ms"
 	"gitlab.com/pschlump/PureImaginationServer/ReadConfig"
 )
@@ -132,6 +133,7 @@ func main() {
 		for _, s := range ss {
 			DbOn[s] = true
 		}
+		tl.SetDbOn(DbOn)
 	}
 
 	if *optVersion {
@@ -162,12 +164,12 @@ func main() {
 	// fmt.Printf("optQuery == ->%s<- AT: %s\n", *optQuery, godebug.LF())
 	if *optQuery != "" {
 		// fmt.Printf("AT: %s\n", godebug.LF())
-		db_x := ConnectToAnyDb("postgres", gCfg.DbConn, gCfg.DbName)
+		db_x := tl.ConnectToAnyDb("postgres", gCfg.DbConn, gCfg.DbName)
 		if db_x == nil {
 			fmt.Fprintf(os.Stderr, "%sUnable to connection to database: %s\n", MiscLib.ColorRed, MiscLib.ColorReset)
 			os.Exit(1)
 		}
-		data, err := SelData2(db_x.Db, *optQuery)
+		data, err := tl.SelData2(db_x.Db, *optQuery)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%sUnable to connection to database/failed on table select: %v%s\n", MiscLib.ColorRed, err, MiscLib.ColorReset)
 			os.Exit(1)
