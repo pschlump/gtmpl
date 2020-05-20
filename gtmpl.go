@@ -40,13 +40,13 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"text/template"
 
 	"github.com/pschlump/MiscLib"
+	template "github.com/pschlump/extend"
+	sprig "github.com/pschlump/extend/extendsprig"
 	"github.com/pschlump/filelib"
 	"github.com/pschlump/godebug"
 	"github.com/pschlump/ms"
-	"github.com/pschlump/sprig"
 	"gitlab.com/pschlump/PureImaginationServer/ReadConfig"
 )
 

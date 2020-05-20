@@ -19,7 +19,7 @@ import (
 	"strings"
 
 	template "github.com/pschlump/extend"
-	"github.com/pschlump/extendsprig"
+	extendsprig "github.com/pschlump/extend/extendsprig"
 	"github.com/pschlump/filelib"
 	"github.com/pschlump/godebug"
 	"gitlab.com/pschlump/PureImaginationServer/ymux"
