@@ -8,10 +8,10 @@ import (
 	"os"
 	"testing"
 
+	"git.q8s.co/pschlump/piserver/ymux"
 	"github.com/pschlump/MiscLib"
+	"github.com/pschlump/ReadConfig"
 	"github.com/pschlump/godebug"
-	"gitlab.com/pschlump/PureImaginationServer/ReadConfig"
-	"gitlab.com/pschlump/PureImaginationServer/ymux"
 )
 
 type ConfigFile struct {

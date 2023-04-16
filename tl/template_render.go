@@ -18,11 +18,11 @@ import (
 	"strconv"
 	"strings"
 
+	"git.q8s.co/pschlump/piserver/ymux"
 	template "github.com/pschlump/extend"
 	extendsprig "github.com/pschlump/extend/extendsprig"
 	"github.com/pschlump/filelib"
 	"github.com/pschlump/godebug"
-	"gitlab.com/pschlump/PureImaginationServer/ymux"
 )
 
 // "github.com/pschlump/sprig"

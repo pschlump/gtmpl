@@ -42,16 +42,14 @@ import (
 	"strings"
 
 	"github.com/pschlump/MiscLib"
+	"github.com/pschlump/ReadConfig"
 	template "github.com/pschlump/extend"
 	sprig "github.com/pschlump/extend/extendsprig"
 	"github.com/pschlump/filelib"
 	"github.com/pschlump/godebug"
 	"github.com/pschlump/gtmpl/tl"
 	"github.com/pschlump/ms"
-	"gitlab.com/pschlump/PureImaginationServer/ReadConfig"
 )
-
-// "gitlab.com/pschlump/PureImaginationServer/ReadConfig"
 
 //
 //1. gtmpl -cli {data} -data file.json -tmpl Temlate.tmpl -out fn.out --inputDataMerged merged.data.json --tmplDir ./dir/
