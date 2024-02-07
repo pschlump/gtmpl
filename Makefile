@@ -28,6 +28,10 @@ test003:
 	go build
 	./gtmpl --data test3.json --tmpl ./test2 --out ./out 
 
+test004:
+	go build
+	./gtmpl --data test4.json --tmpl ./test4 --out ./out 
+
 run_ex1:
 	./gtmpl --cli '{"type":"string"}' --tmpl ./ex1 --out ./out 
 	( cd out ; goimports -w *.go )
@@ -46,3 +50,8 @@ blk01:
 	go build
 	./gtmpl --cli '{"a":4}' --cli '{"b":8}' --data t1.json --cli '{"a":22}' --debug echo_input --debug file_name --tmpl-list ./testdata/blk01/blk01.tmpl,./testdata/blk01/redef.tmpl --out ./out/blk01.out 
 	diff out/blk01.out ref/blk01.out
+
+install:
+	( cd ~/bin ; rm -f gtmpl )
+	( cd ~/bin ; ln -s ../go/src/github.com/pschlump/gtmpl/gtmpl . )
+
