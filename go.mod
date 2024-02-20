@@ -1,6 +1,6 @@
 module github.com/pschlump/gtmpl
 
-go 1.21.4
+go 1.22.0
 
 require (
 	git.q8s.co/pschlump/piserver v1.0.0
