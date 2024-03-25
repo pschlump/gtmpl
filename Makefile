@@ -32,6 +32,11 @@ test004:
 	go build
 	./gtmpl --data test4.json --tmpl ./test4 --out ./out 
 
+test005:
+	go build
+	./gtmpl --data test5.json --tmpl ./test5 --out ./out 
+
+
 run_ex1:
 	./gtmpl --cli '{"type":"string"}' --tmpl ./ex1 --out ./out 
 	( cd out ; goimports -w *.go )

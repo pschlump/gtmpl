@@ -43,13 +43,16 @@ import (
 
 	"github.com/pschlump/MiscLib"
 	"github.com/pschlump/ReadConfig"
-	template "github.com/pschlump/extend"
-	sprig "github.com/pschlump/extend/extendsprig"
+
+	"github.com/pschlump/dbgo"
 	"github.com/pschlump/filelib"
-	"github.com/pschlump/godebug"
 	"github.com/pschlump/gtmpl/tl"
 	"github.com/pschlump/ms"
+	sprig "github.com/pschlump/sprig"
+	template "github.com/pschlump/textTemplate"
 )
+
+// template "github.com/pschlump/extend"
 
 //
 //1. gtmpl -cli {data} -data file.json -tmpl Temlate.tmpl -out fn.out --inputDataMerged merged.data.json --tmplDir ./dir/
@@ -83,8 +86,8 @@ var optData = flag.String("data", "", "Provide data in a JSON or XML file.")    
 var optTmpl = flag.String("tmpl", "", "Template to process.")                       // 6
 var optOut = flag.String("out", "", "Destination to send output to.")               // 7
 var optDebug = flag.String("debug", "", "Comma seperated list of debug flags.")     // 8
-var optTmplList = flag.String("tmpl-list", "", "Template list to parse.")           // 9
-var optExtend = flag.String("tmpl-extend", "", "Template to process with extend.")  // 10
+// var optTmplList = flag.String("tmpl-list", "", "Template list to parse.")           // 9
+var optExtend = flag.String("tmpl-extend", "", "Template to process with extend.") // 10		// turned on
 
 var optDbConn = flag.String("conn", "", "Database (PostgreSQL) connection string.")
 var optDbName = flag.String("dbname", "", "Database (PostgreSQL) name.")
@@ -143,7 +146,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	// fmt.Printf("AT: %s\n", godebug.LF())
+	// fmt.Printf("AT: %s\n", dbgo.LF())
 	if *optCfg != "" {
 		err := ReadConfig.ReadFile(*optCfg, &gCfg)
 		if err != nil {
@@ -159,9 +162,9 @@ func main() {
 		gCfg.DbName = *optDbName
 	}
 
-	// fmt.Printf("optQuery == ->%s<- AT: %s\n", *optQuery, godebug.LF())
+	// fmt.Printf("optQuery == ->%s<- AT: %s\n", *optQuery, dbgo.LF())
 	if *optQuery != "" {
-		// fmt.Printf("AT: %s\n", godebug.LF())
+		// fmt.Printf("AT: %s\n", dbgo.LF())
 		db_x := tl.ConnectToAnyDb("postgres", gCfg.DbConn, gCfg.DbName)
 		if db_x == nil {
 			fmt.Fprintf(os.Stderr, "%sUnable to connection to database: %s\n", MiscLib.ColorRed, MiscLib.ColorReset)
@@ -173,7 +176,7 @@ func main() {
 			os.Exit(1)
 		}
 		if DbOn["query"] {
-			fmt.Printf("Data=%s\n", godebug.SVarI(data))
+			fmt.Printf("Data=%s\n", dbgo.SVarI(data))
 		}
 
 		if *optUseSubData {
@@ -190,7 +193,7 @@ func main() {
 		}
 	}
 
-	// fmt.Printf("AT: %s\n", godebug.LF())
+	// fmt.Printf("AT: %s\n", dbgo.LF())
 	if *optCli != "" {
 		dt := *optCli
 		mergeData([]byte(dt))
@@ -205,14 +208,14 @@ func main() {
 		mergeData(dt)
 	}
 
-	// fmt.Printf("AT: %s\n", godebug.LF())
+	// fmt.Printf("AT: %s\n", dbgo.LF())
 	if *optTmpl != "" {
 		tmplOpt = *optTmpl
 		// if dir - find all ./*.tmpl files and put those in list, if file just add to processing list.
 		if filelib.ExistsIsDir(tmplOpt) {
 			// check if --tmpl:fn is a file or dir.
 			fns, dirs := filelib.GetFilenames(tmplOpt)
-			// fmt.Printf("AT: %s, fns=%s\n", godebug.LF(), fns)
+			// fmt.Printf("AT: %s, fns=%s\n", dbgo.LF(), fns)
 			if len(dirs) > 0 {
 				fmt.Fprintf(os.Stderr, "Warning: not performaing recursive directory search on %s - sub-directories %s skipped\n", tmplOpt, dirs)
 			}
@@ -226,7 +229,7 @@ func main() {
 		}
 	}
 
-	// fmt.Printf("AT: %s\n", godebug.LF())
+	// fmt.Printf("AT: %s\n", dbgo.LF())
 	// if --tmpl is a directory then --out must be a directory -check-
 	if tmplIsDir {
 		if !filelib.ExistsIsDir(*optOut) {
@@ -236,15 +239,87 @@ func main() {
 	}
 
 	if DbOn["echo_input"] {
-		fmt.Printf("AT: %s\n", godebug.LF())
-		fmt.Printf("Data: %s\n", godebug.SVarI(theData))
-		fmt.Printf("gCfg: %s\n", godebug.SVarI(gCfg))
-		fmt.Printf("TMPL files tmplList: %s\n", godebug.SVarI(tmplList))
+		fmt.Printf("AT: %s\n", dbgo.LF())
+		fmt.Printf("Data: %s\n", dbgo.SVarI(theData))
+		fmt.Printf("gCfg: %s\n", dbgo.SVarI(gCfg))
+		fmt.Printf("TMPL files tmplList: %s\n", dbgo.SVarI(tmplList))
 	}
 
 	if DbOn["db4"] {
-		fmt.Printf("AT: %s\n", godebug.LF())
+		fmt.Printf("AT: %s\n", dbgo.LF())
 	}
+	rtFuncMap := template.FuncMap{
+		"Center":      ms.CenterStr,   //
+		"PadR":        ms.PadOnRight,  //
+		"PadL":        ms.PadOnLeft,   //
+		"PicTime":     ms.PicTime,     //
+		"FTime":       ms.StrFTime,    //
+		"PicFloat":    ms.PicFloat,    //
+		"nvl":         ms.Nvl,         //
+		"Concat":      ms.Concat,      //
+		"title":       strings.Title,  // The name "title" is what the function will be called in the template text.
+		"ifDef":       ms.IfDef,       //
+		"ifIsDef":     ms.IfIsDef,     //
+		"ifIsNotNull": ms.IfIsNotNull, //
+		// From: https://stackoverflow.com/questions/21482948/how-to-print-json-on-golang-template/21483211
+		// "marshal": func(v interface{}) template.JS {
+		"marshal": func(v interface{}) string {
+			a, _ := json.Marshal(v)
+			// return template.JS(a)
+			return string(a)
+		},
+		"emptyList": func(v []string) bool {
+			// fmt.Fprintf(os.Stderr, "%s v=%s %s\n", MiscLib.ColorRed, dbgo.SVarI(v), MiscLib.ColorReset)
+			// if len(v) == 0 {
+			// 	return true
+			// } else {
+			// 	return false
+			// }
+			return len(v) == 0
+		},
+
+		// "import": ...			// Import file at run time.
+
+		// I think that the binding time is wrong on this.  We need to change the template and pull in the base
+		// at "Parse" time not at "Execute" time.
+		/*
+			"extend": func(vv string) string {
+				fmt.Fprintf(os.Stderr, "Extend Called: %s at:%s\n", vv, dbgo.LF())
+				var baseTmpl *template.Template
+				baseName := filepath.Base(vv)
+				baseTmpl = template.New(baseName)
+
+				b, err := ioutil.ReadFile(vv)
+				if err != nil {
+					fmt.Printf("AT: %s error: %s\n", dbgo.LF(), err)
+				}
+				s := string(b)
+
+				baseTmpl, err = baseTmpl.Parse(s)
+				if err != nil {
+					fmt.Printf("AT: %s error: %s\n", dbgo.LF(), err)
+				}
+
+				// monkey patch in all of 'tmpl'(closure) into baseTmpl
+				ts := tmpl.Templates()
+				for _, tt := range ts {
+					baseTmpl.AddParseTree(tt.Name(), tt.Tree)
+				}
+
+				tmpl = baseTmpl // replace 'tmpl' with baseTmpl
+
+				return ""
+			},
+		*/
+		"include": includeFile, //
+	}
+
+	if false {
+		name := "bob"
+		tmpl := template.New(name).Funcs(sprig.FuncMap())
+		_ = tmpl
+	}
+
 	if *optExtend != "" {
 		// *optExtend is a template name that will have an "extend" in it.
 		if !filelib.Exists(*optExtend) {
@@ -254,115 +329,53 @@ func main() {
 			name := fmt.Sprintf("derived_%s", *optExtend)
 			tmpl := template.New(name)
 
-			rtFuncMap := template.FuncMap{
-				"Center":      ms.CenterStr,   //
-				"PadR":        ms.PadOnRight,  //
-				"PadL":        ms.PadOnLeft,   //
-				"PicTime":     ms.PicTime,     //
-				"FTime":       ms.StrFTime,    //
-				"PicFloat":    ms.PicFloat,    //
-				"nvl":         ms.Nvl,         //
-				"Concat":      ms.Concat,      //
-				"title":       strings.Title,  // The name "title" is what the function will be called in the template text.
-				"ifDef":       ms.IfDef,       //
-				"ifIsDef":     ms.IfIsDef,     //
-				"ifIsNotNull": ms.IfIsNotNull, //
-				// From: https://stackoverflow.com/questions/21482948/how-to-print-json-on-golang-template/21483211
-				// "marshal": func(v interface{}) template.JS {
-				"marshal": func(v interface{}) string {
-					a, _ := json.Marshal(v)
-					// return template.JS(a)
-					return string(a)
-				},
-				"emptyList": func(v []string) bool {
-					// fmt.Fprintf(os.Stderr, "%s v=%s %s\n", MiscLib.ColorRed, godebug.SVarI(v), MiscLib.ColorReset)
-					// if len(v) == 0 {
-					// 	return true
-					// } else {
-					// 	return false
-					// }
-					return len(v) == 0
-				},
-
-				// "import": ...			// Import file at run time.
-
-				// I think that the binding time is wrong on this.  We need to change the template and pull in the base
-				// at "Parse" time not at "Execute" time.
-				"extend": func(vv string) string {
-					fmt.Fprintf(os.Stderr, "Extend Called: %s at:%s\n", vv, godebug.LF())
-					var baseTmpl *template.Template
-					baseName := filepath.Base(vv)
-					baseTmpl = template.New(baseName)
-
-					b, err := ioutil.ReadFile(vv)
-					if err != nil {
-						fmt.Printf("AT: %s error: %s\n", godebug.LF(), err)
-					}
-					s := string(b)
-
-					baseTmpl, err = baseTmpl.Parse(s)
-					if err != nil {
-						fmt.Printf("AT: %s error: %s\n", godebug.LF(), err)
-					}
-
-					// monkey patch in all of 'tmpl'(closure) into baseTmpl
-					ts := tmpl.Templates()
-					for _, tt := range ts {
-						baseTmpl.AddParseTree(tt.Name(), tt.Tree)
-					}
-
-					tmpl = baseTmpl // replace 'tmpl' with baseTmpl
-
-					return ""
-				},
-			}
-
 			tmpl = tmpl.Funcs(rtFuncMap)
 		}
 
-	} else if *optTmplList != "" {
-		var fp *os.File
-		if DbOn["db4"] {
-			fmt.Printf("AT: %s\n", godebug.LF())
-		}
-		//create a new template with some name
-		name := fmt.Sprintf("tmpl_%s", *optTmplList)
-		tmpl := template.New(name).Funcs(sprig.TxtFuncMap())
-		fns := strings.Split(*optTmplList, ",")
-		for ii, fn := range fns {
-			if !filelib.Exists(fn) {
-				fmt.Printf("Missing File %d, ->%s<-\n", ii, fn)
-			}
-		}
-		if DbOn["db4"] {
-			fmt.Printf("AT: %s - fns = %s\n", godebug.LF(), godebug.SVar(fns))
-		}
-		tmpl, err := tmpl.ParseFiles(fns...)
-		if err != nil {
-			fmt.Printf("Parse: error %s on %s, at:%s\n", err, *optTmplList, godebug.LF())
-			goto done
-		}
-		fp, err = filelib.Fopen(*optOut, "w")
-		if err != nil {
-			fmt.Printf("Unable to open %s for output, error: %s ", *optOut, err)
-			goto done
-		}
-		defer fp.Close()
-		if DbOn["db4"] {
-			fmt.Printf("%sAT: %s - defined = %s%s\n", MiscLib.ColorCyan, godebug.LF(), tmpl.DefinedTemplates(), MiscLib.ColorReset)
-		}
-		err = tmpl.ExecuteTemplate(fp, "foo", theData)
-		if err != nil {
-			fmt.Printf("Execute: %s\n", err)
-			goto done
-		}
-	done:
+		//	} else if *optTmplList != "" {
+		//		var fp *os.File
+		//		if DbOn["db4"] {
+		//			fmt.Printf("AT: %s\n", dbgo.LF())
+		//		}
+		//		//create a new template with some name
+		//		name := fmt.Sprintf("tmpl_%s", *optTmplList)
+		//		tmpl := template.New(name).Funcs(sprig.TxtFuncMap())
+		//		fns := strings.Split(*optTmplList, ",")
+		//		for ii, fn := range fns {
+		//			if !filelib.Exists(fn) {
+		//				fmt.Printf("Missing File %d, ->%s<-\n", ii, fn)
+		//			}
+		//		}
+		//		if DbOn["db4"] {
+		//			fmt.Printf("AT: %s - fns = %s\n", dbgo.LF(), dbgo.SVar(fns))
+		//		}
+		//		tmpl, err := tmpl.ParseFiles(fns...)
+		//		if err != nil {
+		//			fmt.Printf("Parse: error %s on %s, at:%s\n", err, *optTmplList, dbgo.LF())
+		//			goto done
+		//		}
+		//		fp, err = filelib.Fopen(*optOut, "w")
+		//		if err != nil {
+		//			fmt.Printf("Unable to open %s for output, error: %s ", *optOut, err)
+		//			goto done
+		//		}
+		//		defer fp.Close()
+		//		if DbOn["db4"] {
+		//			fmt.Printf("%sAT: %s - defined = %s%s\n", MiscLib.ColorCyan, dbgo.LF(), tmpl.DefinedTemplates(), MiscLib.ColorReset)
+		//		}
+		//		err = tmpl.ExecuteTemplate(fp, "foo", theData)
+		//		if err != nil {
+		//			fmt.Printf("Execute: %s\n", err)
+		//			goto done
+		//		}
+		//	done:
 	} else {
 		for tn, tf := range tmplList {
-			// fmt.Printf("AT: %s\n", godebug.LF())
+			// fmt.Printf("AT: %s\n", dbgo.LF())
 
 			//create a new template with some name
-			tmpl := template.New(fmt.Sprintf("tmpl_%d", tn)).Funcs(sprig.TxtFuncMap())
+			// tmpl := template.New(fmt.Sprintf("tmpl_%d", tn)).Funcs(sprig.TxtFuncMap())
+			tmpl := template.New(fmt.Sprintf("tmpl_%d", tn)).Funcs(sprig.AddFuncMap(rtFuncMap))
 
 			if DbOn["proc_file"] {
 				fmt.Printf("%sprocessing [%v]%s\n", MiscLib.ColorGreen, tn, MiscLib.ColorReset)
@@ -427,4 +440,13 @@ func main() {
 var Usage = func() {
 	fmt.Fprintf(os.Stderr, "Usage: %s\n", os.Args[0])
 	flag.PrintDefaults()
+}
+
+func includeFile(fn string) (rv string) {
+	buf, err := ioutil.ReadFile(fn)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to open %s for reading, error:%s\n", fn, err)
+		return fmt.Sprintf("!!!! ERROR: Unable to open %s for reading, error:%s\n", fn, err)
+	}
+	return string(buf)
 }

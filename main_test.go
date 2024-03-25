@@ -10,7 +10,7 @@ package main
 // --old-- 	"testing"
 // --old--
 // --old-- 	"github.com/pschlump/MiscLib"
-// --old-- 	"github.com/pschlump/godebug"
+// --old-- 	"github.com/pschlump/dbgo"
 // --old-- 	"git.q8s.co/pschlump/ReadConfig"
 // --old-- 	"git.q8s.co/pschlump/piserver/ymux"
 // --old-- )
@@ -84,7 +84,7 @@ package main
 // --old-- 	tv, err := RenderTemplate(mdata, "testdata/base-table.html", "testdata/list-of-files/lof.html")
 // --old--
 // --old-- 	if db821 {
-// --old-- 		fmt.Printf("AT: %s Template ->%s<- error:%s\n", godebug.LF(), tv, err)
+// --old-- 		fmt.Printf("AT: %s Template ->%s<- error:%s\n", dbgo.LF(), tv, err)
 // --old-- 	}
 // --old--
 // --old-- 	if err != nil {
@@ -150,7 +150,7 @@ package main
 // --old-- 	mdata, err := ProcessSQL(&ds, fx)
 // --old--
 // --old-- 	if db822 {
-// --old-- 		fmt.Printf("at:%s err:%s mdata=%s\n", godebug.LF(), err, godebug.SVarI(mdata))
+// --old-- 		fmt.Printf("at:%s err:%s mdata=%s\n", dbgo.LF(), err, dbgo.SVarI(mdata))
 // --old-- 	}
 // --old--
 // --old-- 	if _, ok := mdata["test1"]; !ok {
@@ -259,7 +259,7 @@ package main
 // --old-- 	// func ReadJsonTemplateConfigFile(fn string) (ds JsonTemplateRunnerType, err error) {
 // --old-- 	ds, err := ReadJsonTemplateConfigFile("./testdata/testTemplateConfig1.json")
 // --old-- 	if db823 {
-// --old-- 		fmt.Printf("%s\n", godebug.SVarI(ds))
+// --old-- 		fmt.Printf("%s\n", dbgo.SVarI(ds))
 // --old-- 	}
 // --old-- 	if err != nil {
 // --old-- 		t.Errorf("Error error: %s\n", err)
@@ -284,7 +284,7 @@ package main
 // --old-- 	],
 // --old-- 	"Test": null
 // --old-- }`
-// --old-- 	got := godebug.SVarI(ds)
+// --old-- 	got := dbgo.SVarI(ds)
 // --old-- 	if got != expect {
 // --old-- 		ioutil.WriteFile(",c", []byte(expect), 0644)
 // --old-- 		ioutil.WriteFile(",d", []byte(got), 0644)
