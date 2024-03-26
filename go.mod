@@ -6,7 +6,7 @@ require (
 	git.q8s.co/pschlump/piserver v1.0.0
 	github.com/lib/pq v1.10.9
 	github.com/pschlump/MiscLib v1.0.8
-	github.com/pschlump/ReadConfig v1.0.6
+	github.com/pschlump/ReadConfig v1.0.8
 	github.com/pschlump/dbgo v1.0.8
 	github.com/pschlump/extend v0.1.10
 	github.com/pschlump/filelib v1.0.12
@@ -41,7 +41,7 @@ require (
 	github.com/pschlump/gowords v1.0.1 // indirect
 	github.com/pschlump/json v1.12.1 // indirect
 	github.com/pschlump/json5 v1.0.0 // indirect
-	github.com/pschlump/jsonSyntaxErrorLib v1.0.4 // indirect
+	github.com/pschlump/jsonSyntaxErrorLib v1.0.8 // indirect
 	github.com/pschlump/jwtverif v0.1.8 // indirect
 	github.com/pschlump/mon-alive v0.6.0 // indirect
 	github.com/pschlump/picfloat v1.0.0 // indirect
