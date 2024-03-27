@@ -3,7 +3,7 @@ module github.com/pschlump/gtmpl
 go 1.22.0
 
 require (
-	github.com/lib/pq v1.10.9
+	github.com/jackc/pgx/v5 v5.5.5
 	github.com/pborman/uuid v1.2.0
 	github.com/pschlump/HashStr v1.0.0
 	github.com/pschlump/MiscLib v1.0.8
@@ -28,6 +28,8 @@ require (
 	github.com/hhkbp2/go-strftime v0.0.0-20150709091403-d82166ec6782 // indirect
 	github.com/huandu/xstrings v1.3.3 // indirect
 	github.com/imdario/mergo v0.3.11 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.0 // indirect
@@ -41,8 +43,9 @@ require (
 	github.com/pschlump/pictime v1.0.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
-	golang.org/x/crypto v0.3.0 // indirect
+	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 )
 

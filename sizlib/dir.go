@@ -13,7 +13,6 @@ package sizlib
 // "github.com/jackc/pgx" //  https://github.com/jackc/pgx
 
 import (
-	_ "github.com/lib/pq"
 	"github.com/taskcluster/slugid-go/slugid"
 
 	"crypto/sha1"

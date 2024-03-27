@@ -12,8 +12,6 @@ import (
 	"github.com/pschlump/uuid"
 )
 
-// _ "github.com/lib/pq"
-
 type MyDb struct {
 	Db     *sql.DB
 	DbType string

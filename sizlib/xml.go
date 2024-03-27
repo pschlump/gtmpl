@@ -12,8 +12,6 @@ package sizlib
 
 // "github.com/jackc/pgx" //  https://github.com/jackc/pgx
 import (
-	_ "github.com/lib/pq"
-
 	"encoding/xml"
 	"fmt"
 )
