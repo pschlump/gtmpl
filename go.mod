@@ -10,10 +10,9 @@ require (
 	github.com/pschlump/dbgo v1.0.8
 	github.com/pschlump/extend v0.1.10
 	github.com/pschlump/filelib v1.0.12
-	github.com/pschlump/godebug v1.0.4
 	github.com/pschlump/ms v1.0.8
 	github.com/pschlump/sprig v0.0.0-00010101000000-000000000000
-	github.com/pschlump/textTemplate v1.22.3
+	github.com/pschlump/textTemplate v1.22.7
 	github.com/pschlump/uuid v1.0.3
 )
 
@@ -38,6 +37,7 @@ require (
 	github.com/pschlump/ansi v1.0.7 // indirect
 	github.com/pschlump/go-colorable v0.0.23 // indirect
 	github.com/pschlump/go-isatty v0.0.23 // indirect
+	github.com/pschlump/godebug v1.0.4 // indirect
 	github.com/pschlump/gowords v1.0.1 // indirect
 	github.com/pschlump/json v1.12.1 // indirect
 	github.com/pschlump/json5 v1.0.0 // indirect

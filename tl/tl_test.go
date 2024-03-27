@@ -8,11 +8,13 @@ import (
 	"os"
 	"testing"
 
-	"git.q8s.co/pschlump/piserver/ymux"
 	"github.com/pschlump/MiscLib"
 	"github.com/pschlump/ReadConfig"
-	"github.com/pschlump/godebug"
+	"github.com/pschlump/dbgo"
+	ymux "github.com/pschlump/gtmpl/sizlib"
 )
+
+// "git.q8s.co/pschlump/piserver/ymux"
 
 type ConfigFile struct {
 	Name   string `json:"name"`
@@ -91,7 +93,7 @@ func Test_RenderTemlate(t *testing.T) {
 	tv, err := RenderTemplate(mdata, "testdata/base-table.html", "testdata/list-of-files/lof.html")
 
 	if db821 {
-		fmt.Printf("AT: %s Template ->%s<- error:%s\n", godebug.LF(), tv, err)
+		fmt.Printf("AT: %s Template ->%s<- error:%s\n", dbgo.LF(), tv, err)
 	}
 
 	if err != nil {
@@ -157,7 +159,7 @@ func Test_ProcessSQL(t *testing.T) {
 	mdata, err := ProcessSQL(&ds, fx)
 
 	if db822 {
-		fmt.Printf("at:%s err:%s mdata=%s\n", godebug.LF(), err, godebug.SVarI(mdata))
+		fmt.Printf("at:%s err:%s mdata=%s\n", dbgo.LF(), err, dbgo.SVarI(mdata))
 	}
 
 	if _, ok := mdata["test1"]; !ok {
@@ -266,7 +268,7 @@ func Test_ReadJsonTemplateConfigFile(t *testing.T) {
 	// func ReadJsonTemplateConfigFile(fn string) (ds JsonTemplateRunnerType, err error) {
 	ds, err := ReadJsonTemplateConfigFile("./testdata/testTemplateConfig1.json")
 	if db823 {
-		fmt.Printf("%s\n", godebug.SVarI(ds))
+		fmt.Printf("%s\n", dbgo.SVarI(ds))
 	}
 	if err != nil {
 		t.Errorf("Error error: %s\n", err)
@@ -291,7 +293,7 @@ func Test_ReadJsonTemplateConfigFile(t *testing.T) {
 	],
 	"Test": null
 }`
-	got := godebug.SVarI(ds)
+	got := dbgo.SVarI(ds)
 	if got != expect {
 		ioutil.WriteFile(",c", []byte(expect), 0644)
 		ioutil.WriteFile(",d", []byte(got), 0644)
@@ -306,11 +308,13 @@ func Test_ReadJsonTemplateConfigFile(t *testing.T) {
 
 // ==============================================================================================================================
 
-//func TmplProcess(
+// func TmplProcess(
+//
 //	item string, //  "page_name", "partial" etc.
 //	tmpl_name string, // .html/.tmpl file or .json file with data+selects+templates
 //	dataFunc func(name string) string,
-//) (tmpl_rendered string, status int, err error) {
+//
+// ) (tmpl_rendered string, status int, err error) {
 func Test_TmplProcess(t *testing.T) {
 
 	DbOn["db4a"] = true

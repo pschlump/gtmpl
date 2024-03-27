@@ -9,7 +9,7 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.com/pschlump/MiscLib"
-	"github.com/pschlump/godebug"
+	"github.com/pschlump/dbgo"
 	"github.com/pschlump/uuid"
 )
 
@@ -78,8 +78,8 @@ func SelData2(db *sql.DB, q string, data ...interface{}) ([]map[string]interface
 	Rows, err := SelQ(db, q, data...)
 
 	if err != nil {
-		fmt.Printf("Params: %s\n", godebug.SVar(data))
-		// godebug.IAmAt2( fmt.Sprintf ( "Error (%s)", err ) )
+		fmt.Printf("Params: %s\n", dbgo.SVar(data))
+		// dbgo.IAmAt2( fmt.Sprintf ( "Error (%s)", err ) )
 		return make([]map[string]interface{}, 0, 1), err
 	}
 
@@ -93,9 +93,9 @@ func SelData2(db *sql.DB, q string, data ...interface{}) ([]map[string]interface
 // -------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------
 func SelQ(db *sql.DB, q string, data ...interface{}) (Rows *sql.Rows, err error) {
-	//godebug.TraceDb2("SelQ", q, data...)
-	//godebug.TrIAmAt2(fmt.Sprintf("Query (%s) with data:", q))
-	//godebug.DumpVar(data)
+	//dbgo.TraceDb2("SelQ", q, data...)
+	//dbgo.TrIAmAt2(fmt.Sprintf("Query (%s) with data:", q))
+	//dbgo.DumpVar(data)
 	if len(data) == 0 {
 		Rows, err = db.Query(q)
 	} else {
@@ -155,11 +155,11 @@ func RowsToInterface(rows *sql.Rows) ([]map[string]interface{}, string, int) {
 			// fmt.Printf ( "at top i=%d %T\n", i, value )
 			switch value.(type) {
 			case nil:
-				// fmt.Println("n, %s", columns[i], ": NULL", godebug.LF())
+				// fmt.Println("n, %s", columns[i], ": NULL", dbgo.LF())
 				oneRow[columns[i]] = nil
 
 			case []byte:
-				// fmt.Printf("[]byte, len = %d, %s\n", len(value.([]byte)), godebug.LF())
+				// fmt.Printf("[]byte, len = %d, %s\n", len(value.([]byte)), dbgo.LF())
 				// if len==16 && odbc - then - convert from UniversalIdentifier to string (UUID convert?)
 				if len(value.([]byte)) == 16 {
 					// var u *uuid.UUID
@@ -167,7 +167,7 @@ func RowsToInterface(rows *sql.Rows) ([]map[string]interface{}, string, int) {
 					if uuid.IsUUID(fmt.Sprintf("%s", value.([]byte))) {
 						u, err := uuid.Parse(value.([]byte))
 						if err != nil {
-							// fmt.Printf("Error: Invalid UUID parse, %s\n", godebug.LF())
+							// fmt.Printf("Error: Invalid UUID parse, %s\n", dbgo.LF())
 							oneRow[columns[i]] = string(value.([]byte))
 							if columns[i] == "id" && j == 0 {
 								id = fmt.Sprintf("%s", value)
@@ -177,14 +177,14 @@ func RowsToInterface(rows *sql.Rows) ([]map[string]interface{}, string, int) {
 								id = u.String()
 							}
 							oneRow[columns[i]] = u.String()
-							// fmt.Printf(">>>>>>>>>>>>>>>>>> %s, %s\n", value, godebug.LF())
+							// fmt.Printf(">>>>>>>>>>>>>>>>>> %s, %s\n", value, dbgo.LF())
 						}
 					} else {
 						if columns[i] == "id" && j == 0 {
 							id = fmt.Sprintf("%s", value)
 						}
 						oneRow[columns[i]] = string(value.([]byte))
-						// fmt.Printf(">>>>> 2 >>>>>>>>>>>>> %s, %s\n", value, godebug.LF())
+						// fmt.Printf(">>>>> 2 >>>>>>>>>>>>> %s, %s\n", value, dbgo.LF())
 					}
 				} else {
 					// Floats seem to end up at this point - xyzzy - instead of float64 -- so....  Need to check our column type info and see if 'f'  ---- xyzzy
@@ -196,24 +196,24 @@ func RowsToInterface(rows *sql.Rows) ([]map[string]interface{}, string, int) {
 				}
 
 			case int64:
-				// fmt.Println("i, %s", columns[i], ": ", value, godebug.LF())
+				// fmt.Println("i, %s", columns[i], ": ", value, dbgo.LF())
 				// oneRow[columns[i]] = fmt.Sprintf ( "%v", value )	// PJS-2014-03-06 - I suspect that this is a defect
 				oneRow[columns[i]] = value
 
 			case float64:
-				// fmt.Println("f, %s", columns[i], ": ", value, godebug.LF())
+				// fmt.Println("f, %s", columns[i], ": ", value, dbgo.LF())
 				// oneRow[columns[i]] = fmt.Sprintf ( "%v", value )
 				// fmt.Printf ( "yes it is a float\n" )
 				oneRow[columns[i]] = value
 
 			case bool:
-				// fmt.Println("b, %s", columns[i], ": ", value, godebug.LF())
+				// fmt.Println("b, %s", columns[i], ": ", value, dbgo.LF())
 				// oneRow[columns[i]] = fmt.Sprintf ( "%v", value )		// PJS-2014-03-06
 				// oneRow[columns[i]] = fmt.Sprintf ( "%t", value )		"true" or "false" as a value
 				oneRow[columns[i]] = value
 
 			case string:
-				// fmt.Printf("string, %s\n", godebug.LF())
+				// fmt.Printf("string, %s\n", dbgo.LF())
 				if columns[i] == "id" && j == 0 {
 					id = fmt.Sprintf("%s", value)
 				}
@@ -226,9 +226,9 @@ func RowsToInterface(rows *sql.Rows) ([]map[string]interface{}, string, int) {
 				oneRow[columns[i]] = (value.(time.Time)).Format(ISO8601output)
 
 			default:
-				fmt.Printf("%s--- In default Case [%s] - %T %s\n", MiscLib.ColorRed, godebug.LF(), value, MiscLib.ColorReset)
-				fmt.Fprintf(os.Stderr, "%s--- In default Case [%s] - %T %s\n", MiscLib.ColorRed, godebug.LF(), value, MiscLib.ColorReset)
-				// fmt.Printf ( "default, yes it is a... , i=%d, %T\n", i, value, godebug.LF() )
+				fmt.Printf("%s--- In default Case [%s] - %T %s\n", MiscLib.ColorRed, dbgo.LF(), value, MiscLib.ColorReset)
+				fmt.Fprintf(os.Stderr, "%s--- In default Case [%s] - %T %s\n", MiscLib.ColorRed, dbgo.LF(), value, MiscLib.ColorReset)
+				// fmt.Printf ( "default, yes it is a... , i=%d, %T\n", i, value, dbgo.LF() )
 				// fmt.Println("r", columns[i], ": ", value)
 				if columns[i] == "id" && j == 0 {
 					id = fmt.Sprintf("%v", value)

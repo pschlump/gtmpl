@@ -11,6 +11,7 @@ package tl
 import (
 	"bufio"
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -18,12 +19,14 @@ import (
 	"strconv"
 	"strings"
 
-	"git.q8s.co/pschlump/piserver/ymux"
+	"github.com/pschlump/dbgo"
 	template "github.com/pschlump/extend"
 	extendsprig "github.com/pschlump/extend/extendsprig"
 	"github.com/pschlump/filelib"
-	"github.com/pschlump/godebug"
+	ymux "github.com/pschlump/gtmpl/sizlib"
 )
+
+// "git.q8s.co/pschlump/piserver/ymux"
 
 // "github.com/pschlump/sprig"
 // "text/template"
@@ -115,8 +118,9 @@ func TmplProcess(
 	item string, //  "page_name", "partial" etc.
 	tmpl_name string, // .html/.tmpl file or .json file with data+selects+templates
 	dataFunc func(name string) string,
+	DB *sql.DB,
 ) (tmpl_rendered string, status int, err error) {
-	_, _, tmpl_rendered, status, err = tmplProcessInternal(item, tmpl_name, gPath, dataFunc)
+	_, _, tmpl_rendered, status, err = tmplProcessInternal(item, tmpl_name, gPath, dataFunc, DB)
 	if status == 200 || err == nil {
 		return
 	}
@@ -131,6 +135,7 @@ func tmplProcessInternal(
 	tmpl_name string, // .html/.tmpl file or .json file with data+selects+templates
 	path string,
 	dataFunc func(s string) string,
+	DB *sql.DB,
 ) (body, data, tmpl_rendered string, status int, err error) {
 
 	// 1. Find/Clasify the 'tmpl_name' - .html / .tmpl, or .json file.
@@ -139,7 +144,7 @@ func tmplProcessInternal(
 	// 2. if .html/.tmpl - just process template and return
 	if file_type == ".html" || file_type == ".tmpl" {
 		mdata := map[string]interface{}{}
-		tmpl_rendered, err = RenderTemplate(mdata, full_path)
+		tmpl_rendered, err = RenderTemplate(DB, mdata, full_path)
 		return
 	}
 
@@ -152,14 +157,14 @@ func tmplProcessInternal(
 	//		a. Read/Deciperh .json file
 	ds, err := ReadJsonTemplateConfigFile(full_path)
 	if err != nil {
-		fmt.Printf("File: %s Error: %s at %s\n", full_path, err, godebug.LF())
+		fmt.Printf("File: %s Error: %s at %s\n", full_path, err, dbgo.LF())
 		return
 	}
 
 	mdata := make(map[string]interface{})
 
 	//		c. Run the .SQL section to collect the data
-	tdata, err := ProcessSQL(&ds, dataFunc)
+	tdata, err := ProcessSQL(DB, &ds, dataFunc)
 	if err != nil {
 		fmt.Printf("Error: %s\n", err)
 		return
@@ -167,7 +172,7 @@ func tmplProcessInternal(
 	mdata["data"] = tdata
 
 	tmp := make(map[string]string)
-	s := godebug.SVar(ds.JsonLayout)
+	s := dbgo.SVar(ds.JsonLayout)
 	json.Unmarshal([]byte(s), &tmp)
 	mdata["jsonLayout"] = tmp
 
@@ -178,7 +183,7 @@ func tmplProcessInternal(
 	} else {
 		aa, ok := ds.TemplateSet[item]
 		if !ok {
-			err = fmt.Errorf("Invalid/Missing item name >%s< ds->%s<- at:%s\n", item, godebug.SVarI(ds), godebug.LF())
+			err = fmt.Errorf("Invalid/Missing item name >%s< ds->%s<- at:%s\n", item, dbgo.SVarI(ds), dbgo.LF())
 			return
 		}
 		templateList = aa.TemplateList
@@ -195,7 +200,7 @@ func tmplProcessInternal(
 	}
 
 	//    	d. Run the template with the data
-	tmpl_rendered, err = RenderTemplate(mdata, tmpl_name, templateList...)
+	tmpl_rendered, err = RenderTemplate(DB, mdata, tmpl_name, templateList...)
 
 	//		e. Return results if successful.
 	return
@@ -224,10 +229,10 @@ func PathFind(path, fn string) (full_path, file_type string, err error) {
 // The template that is rendered is "render".
 // Each of the files, fns, is a full path to a file to render.
 // Example Call: tmpl_rendered, err = RenderTemplate(mdata, full_path)
-func RenderTemplate(mdata map[string]interface{}, tmplList string, fns ...string) (tmpl_rendered string, err error) {
+func RenderTemplate(DB *sql.DB, mdata map[string]interface{}, tmplList string, fns ...string) (tmpl_rendered string, err error) {
 
 	if DbOn["db4a"] {
-		fmt.Printf("Top of RenderTemplate fns=%s AT: %s\n", godebug.SVarI(fns), godebug.LF())
+		fmt.Printf("Top of RenderTemplate fns=%s AT: %s\n", dbgo.SVarI(fns), dbgo.LF())
 	}
 	//create a new template with some name
 	name := fmt.Sprintf("tmpl_%s", tmplList)
@@ -236,7 +241,7 @@ func RenderTemplate(mdata map[string]interface{}, tmplList string, fns ...string
 	//		.Funcs(extendsprig.TxtFuncMap()) // .Funcs(sprig.TxtFuncMap())
 	tmpl, e0 := tmpl.ParseFiles(fns...)
 	if e0 != nil {
-		err = fmt.Errorf("Parse: error %s on %s, at:%s\n", e0, tmplList, godebug.LF())
+		err = fmt.Errorf("Parse: error %s on %s, at:%s\n", e0, tmplList, dbgo.LF())
 		return
 	}
 
@@ -256,7 +261,7 @@ func RenderTemplate(mdata map[string]interface{}, tmplList string, fns ...string
 }
 
 // mdata, err := ProcessSQL(ds)
-func ProcessSQL(ds *JsonTemplateRunnerType, getDataForSQL func(name string) string) (mdata map[string]interface{}, err error) {
+func ProcessSQL(DB *sql.DB, ds *JsonTemplateRunnerType, getDataForSQL func(name string) string) (mdata map[string]interface{}, err error) {
 
 	/*
 
@@ -304,7 +309,7 @@ func ProcessSQL(ds *JsonTemplateRunnerType, getDataForSQL func(name string) stri
 			}
 		}
 		if db114 {
-			fmt.Printf("AT:%s maxpos=%d\n", godebug.LF(), maxpos)
+			fmt.Printf("AT:%s maxpos=%d\n", dbgo.LF(), maxpos)
 		}
 		indata := make([]string, maxpos, maxpos)
 		for jj := 0; jj < len(dd.Bind); jj++ {
@@ -316,7 +321,7 @@ func ProcessSQL(ds *JsonTemplateRunnerType, getDataForSQL func(name string) stri
 			indata[pos] = getDataForSQL(vv)
 		}
 		if db114 {
-			fmt.Printf("AT:%s indata=%s\n", godebug.LF(), godebug.SVar(indata))
+			fmt.Printf("AT:%s indata=%s\n", dbgo.LF(), dbgo.SVar(indata))
 		}
 
 		// Type convert from string to interface{} in slice, so
@@ -327,16 +332,16 @@ func ProcessSQL(ds *JsonTemplateRunnerType, getDataForSQL func(name string) stri
 		}
 
 		if db114 {
-			fmt.Printf("AT:%s stmt=%s\n", godebug.LF(), stmt)
+			fmt.Printf("AT:%s stmt=%s\n", dbgo.LF(), stmt)
 		}
-		rows, err := ymux.SQLQuery(stmt, indata2...)
+		rows, err := ymux.SQLQuery(DB, stmt, indata2...)
 
 		if db114 {
-			fmt.Printf("AT:%s err=%s\n", godebug.LF(), err)
+			fmt.Printf("AT:%s err=%s\n", dbgo.LF(), err)
 		}
 		if err != nil {
-			fmt.Printf("Error: %s error:%s data:%s\n", stmt, err, godebug.SVar(indata))
-			mdata[to] = fmt.Sprintf("Error: %s error:%s data:%s\n", stmt, err, godebug.SVar(indata))
+			fmt.Printf("Error: %s error:%s data:%s\n", stmt, err, dbgo.SVar(indata))
+			mdata[to] = fmt.Sprintf("Error: %s error:%s data:%s\n", stmt, err, dbgo.SVar(indata))
 		} else {
 			data, _, _ := RowsToInterface(rows)
 			mdata[to] = data
@@ -344,7 +349,7 @@ func ProcessSQL(ds *JsonTemplateRunnerType, getDataForSQL func(name string) stri
 	}
 
 	if db114 {
-		fmt.Printf("Results of SQL, mdata = %s\n", godebug.SVarI(mdata))
+		fmt.Printf("Results of SQL, mdata = %s\n", dbgo.SVarI(mdata))
 	}
 
 	return
@@ -385,11 +390,12 @@ func TmplTest(
 	item string, //  "page_name", "partial" etc.
 	tmpl string, // .tmpl file or .json file with data+selects+templates
 	test_name string, // A test to run
+	DB *sql.DB,
 ) {
 	fx := func(s string) string {
 		return "" // xyzzy - implement!
 	}
-	body, data, tmpl_rendered, status, err := tmplProcessInternal(item, tmpl, gPath, fx)
+	body, data, tmpl_rendered, status, err := tmplProcessInternal(item, tmpl, gPath, fx, DB)
 	// now check error/status, status 200 => err == nil
 	_, _, _, _, _ = body, data, tmpl_rendered, status, err
 
