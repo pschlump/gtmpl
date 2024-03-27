@@ -33,9 +33,8 @@ import (
 	"time"
 
 	newUuid "github.com/pborman/uuid"
-
-	"github.com/pschlump/godebug"
-	"github.com/pschlump/json" //	"encoding/json"
+	"github.com/pschlump/dbgo"
+	"github.com/pschlump/json"
 	"github.com/pschlump/uuid"
 )
 
@@ -408,9 +407,9 @@ func URIToStringMap(req *http.Request) (m url.Values, fr map[string]string) {
 
 	// db_uriToString := false
 
-	// if ( db_uriToString ) { fmt.Printf ( "PJS Apr 9: %s Content Type:%v\n", godebug.LF(), ct ) }
+	// if ( db_uriToString ) { fmt.Printf ( "PJS Apr 9: %s Content Type:%v\n", dbgo.LF(), ct ) }
 	//if db_uriToString {
-	//	fmt.Printf("PJS Sep 20: %s Content Type:%v\n", godebug.LF(), ct)
+	//	fmt.Printf("PJS Sep 20: %s Content Type:%v\n", dbgo.LF(), ct)
 	//}
 
 	u, _ := url.ParseRequestURI(req.RequestURI)
@@ -506,10 +505,10 @@ func URIToStringMap(req *http.Request) (m url.Values, fr map[string]string) {
 	return
 }
 
-//------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copy 'a', then copy 'b' over 'a'
 // Tests:  t-extendData.go
-//------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // jDataDefaults = lowerCaseNames ( jDataDefaults )
 func LowerCaseNames(a map[string]interface{}) (rv map[string]interface{}) {
 	rv = make(map[string]interface{})
@@ -572,7 +571,7 @@ func ExtendDataS(a map[string]string, b map[string]string) (rv map[string]string
 	return
 }
 
-//------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 func EscapeDoubleQuote(s string) string {
 	return strings.Replace(s, `"`, "\\\"", -1)
 }
@@ -588,7 +587,7 @@ func HexSha1(s string) string {
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
-//------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 func TypeOf(v []interface{}) {
 	for i := range v {
 		fmt.Printf("Type of %d = %T\n", i, v[i])
@@ -629,7 +628,7 @@ func ParseBool(s string) (b bool) {
 	//return false
 }
 
-//------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // func HasKeys ( v map[string]Validation ) bool {
 func HasKeys(v map[string]interface{}) bool {
 	for _, _ = range v {
@@ -786,7 +785,6 @@ func SearchPath(rawFileName string, searchPath string) (fullFileName string, ok 
 //
 // rawFileName: sql-cfg.json
 // appName: "store"
-//
 func SearchPathApp(rawFileName string, appName string, searchPath string) (fullFileName string, ok bool) {
 
 	hostname, err := os.Hostname()
@@ -862,7 +860,7 @@ const dbInit1 = false
 //}
 
 func FindFiles(pth string, ignoreDirs []string) (rv []string) {
-	// fmt.Printf("pth=->%s<-, checking vs %s, %s\n", pth, SVar(ignoreDirs), godebug.LF())
+	// fmt.Printf("pth=->%s<-, checking vs %s, %s\n", pth, SVar(ignoreDirs), dbgo.LF())
 	if InArray(pth, ignoreDirs) {
 		return
 	}
@@ -895,7 +893,7 @@ func FindDirsWithSQLCfg(pth string, ignoreDirs []string) (rv []string) {
 	for i, v := range fns {
 		fns[i] = pth + "/" + v
 	}
-	// fmt.Printf("fns=%s, %s\n", fns, godebug.LF())
+	// fmt.Printf("fns=%s, %s\n", fns, dbgo.LF())
 	for _, vv := range fns {
 		ww := Dirname(vv)
 		if InArray(ww, ignoreDirs) {
@@ -904,7 +902,7 @@ func FindDirsWithSQLCfg(pth string, ignoreDirs []string) (rv []string) {
 		}
 	}
 
-	// fmt.Printf("dirs=%s, %s\n", dirs, godebug.LF())
+	// fmt.Printf("dirs=%s, %s\n", dirs, dbgo.LF())
 
 	if recursive {
 		// fmt.Printf("Recursive true\n")
@@ -931,7 +929,7 @@ func Dirname(fn string) (bn string) {
 	if i > 0 {
 		bn = fn[0:i]
 	}
-	// fmt.Printf("Dirname Input[%s] Output[%s], %s\n", fn, bn, godebug.LF())
+	// fmt.Printf("Dirname Input[%s] Output[%s], %s\n", fn, bn, dbgo.LF())
 	return
 }
 
@@ -977,13 +975,13 @@ func SearchPathAppModule(rawFileName string, appName string, searchPath []string
 	for _, p := range searchPath {
 		mdata["CUR_PATH"] = p
 		mdata["ModuleName"] = Basename(p)
-		fmt.Printf("ModuleName: ->%s<- for %s, %s\n", Basename(p), p, godebug.LF())
+		fmt.Printf("ModuleName: ->%s<- for %s, %s\n", Basename(p), p, dbgo.LF())
 
 		for _, tmpl := range tmplArr {
 			aName := Qt(tmpl, mdata)
 			aName, _ = SubstitueUserInFilePath(aName, mdata)
 			aName = Qt(aName, mdata)
-			fmt.Printf("aName: ->%s<- Checking to see if file exists, %s\n", aName, godebug.LF())
+			fmt.Printf("aName: ->%s<- Checking to see if file exists, %s\n", aName, dbgo.LF())
 			if Exists(aName) {
 				if !InArray(aName, fullFileName) {
 					fullFileName = append(fullFileName, aName)
@@ -1075,8 +1073,8 @@ func init() {
 func ReadJSONDataWithComments(path string) (file []byte, err error) {
 	file, err = ioutil.ReadFile(path)
 	if err != nil {
-		// fmt.Printf("Error(10014): Error Reading/Opening %v, %s, Config File:%s\n", err, godebug.LF(), path)
-		// fmt.Fprintf(os.Stderr, "%sError(10014): Error Reading/Opening %v, %s, Config File:%s%s\n", MiscLib.ColorRed, err, godebug.LF(), path, MiscLib.ColorReset)
+		// fmt.Printf("Error(10014): Error Reading/Opening %v, %s, Config File:%s\n", err, dbgo.LF(), path)
+		// fmt.Fprintf(os.Stderr, "%sError(10014): Error Reading/Opening %v, %s, Config File:%s%s\n", MiscLib.ColorRed, err, dbgo.LF(), path, MiscLib.ColorReset)
 		return
 	}
 
@@ -1090,7 +1088,7 @@ func ReadJSONDataWithComments(path string) (file []byte, err error) {
 		aLine = fi.ReplaceAllString(aLine, path)
 		aLine = cm.ReplaceAllString(aLine, "")
 		for en.MatchString(aLine) { // pick up and replace environment variables - put passwords in env not in config files
-			// fmt.Printf("matched __ENV__:Name, %s\n", godebug.LF())
+			// fmt.Printf("matched __ENV__:Name, %s\n", dbgo.LF())
 			ss := en.FindAllString(aLine, 1)
 			// fmt.Printf("ss = %s\n", ss)
 			s := ss[0] // the matched, no need to check array because inside MatchString already
@@ -1111,8 +1109,8 @@ func ReadJSONDataWithComments(path string) (file []byte, err error) {
 	file = []byte(strings.Join(lines, "\n"))
 
 	if db1099 {
-		fmt.Printf("%s %s\n", godebug.LF(2), godebug.LF(3))
-		fmt.Printf("After fix of Remove Comments and Set Line Numbers: Results %s >%s<\n", godebug.LF(), file)
+		fmt.Printf("%s %s\n", dbgo.LF(2), dbgo.LF(3))
+		fmt.Printf("After fix of Remove Comments and Set Line Numbers: Results %s >%s<\n", dbgo.LF(), file)
 	}
 
 	return file, nil

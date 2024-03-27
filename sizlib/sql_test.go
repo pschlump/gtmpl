@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/pschlump/godebug"
+	"github.com/pschlump/dbgo"
 	"github.com/pschlump/json"
 )
 
@@ -27,7 +27,7 @@ func Test_SelQ_001(t *testing.T) {
 		var SelCfg SelCfgType
 		err = json.Unmarshal(data, &SelCfg)
 
-		fmt.Printf("Input: %s\n", godebug.SVarI(SelCfg))
+		fmt.Printf("Input: %s\n", dbgo.SVarI(SelCfg))
 
 		// jDb := ConnectToAnyDb("postgres", SelCfg.DbConnStr, "pschlump")
 		Db := ConnectToDb(SelCfg.DbConnStr)
@@ -41,7 +41,7 @@ func Test_SelQ_001(t *testing.T) {
 			rows, err = SelData2(Db, SelCfg.Query, SelCfg.Param...)
 		}
 
-		fmt.Printf("%s\n", godebug.SVarI(rows))
+		fmt.Printf("%s\n", dbgo.SVarI(rows))
 
 	}
 }

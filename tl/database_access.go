@@ -7,11 +7,12 @@ import (
 	"runtime"
 	"time"
 
-	_ "github.com/lib/pq"
 	"github.com/pschlump/MiscLib"
 	"github.com/pschlump/dbgo"
 	"github.com/pschlump/uuid"
 )
+
+// _ "github.com/lib/pq"
 
 type MyDb struct {
 	Db     *sql.DB
