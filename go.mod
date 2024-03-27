@@ -9,7 +9,6 @@ require (
 	github.com/pschlump/MiscLib v1.0.8
 	github.com/pschlump/ReadConfig v1.0.8
 	github.com/pschlump/dbgo v1.0.8
-	github.com/pschlump/extend v0.1.10
 	github.com/pschlump/filelib v1.0.12
 	github.com/pschlump/json v1.12.1
 	github.com/pschlump/ms v1.0.8
@@ -21,10 +20,9 @@ require (
 
 require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
-	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/semver/v3 v3.2.0 // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
-	github.com/google/uuid v1.1.5 // indirect
+	github.com/google/uuid v1.1.1 // indirect
 	github.com/hhkbp2/go-strftime v0.0.0-20150709091403-d82166ec6782 // indirect
 	github.com/huandu/xstrings v1.3.3 // indirect
 	github.com/imdario/mergo v0.3.11 // indirect

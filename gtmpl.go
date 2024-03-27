@@ -46,7 +46,7 @@ import (
 
 	"github.com/pschlump/dbgo"
 	"github.com/pschlump/filelib"
-	"github.com/pschlump/gtmpl/tl"
+	"github.com/pschlump/gtmpl/sizlib"
 	"github.com/pschlump/ms"
 	sprig "github.com/pschlump/sprig"
 	template "github.com/pschlump/textTemplate"
@@ -65,7 +65,6 @@ import (
 type ConfigFile struct {
 	Name   string `json:"name"`
 	DbConn string `json:"dbconn" default:"user=postgres dbname=postgres port=5432 host=127.0.0.1 sslmode=disable"`
-	DbName string `json:"dbname" default:"postgres"`
 }
 
 var Cli = ""
@@ -90,7 +89,6 @@ var optDebug = flag.String("debug", "", "Comma seperated list of debug flags.") 
 var optExtend = flag.String("tmpl-extend", "", "Template to process with extend.") // 10		// turned on
 
 var optDbConn = flag.String("conn", "", "Database (PostgreSQL) connection string.")
-var optDbName = flag.String("dbname", "", "Database (PostgreSQL) name.")
 var optQuery = flag.String("sql", "", "Database (PostgreSQL) select to get data.")
 var optUseSubData = flag.Bool("sub-data", false, "use .data as a field for array of data.")
 
@@ -134,7 +132,7 @@ func main() {
 		for _, s := range ss {
 			DbOn[s] = true
 		}
-		tl.SetDbOn(DbOn)
+		// sizlib.SetDbOn(DbOn)
 	}
 
 	if *optVersion {
@@ -158,19 +156,16 @@ func main() {
 	if *optDbConn != "" {
 		gCfg.DbConn = *optDbConn
 	}
-	if *optDbName != "" {
-		gCfg.DbName = *optDbName
-	}
 
 	// fmt.Printf("optQuery == ->%s<- AT: %s\n", *optQuery, dbgo.LF())
 	if *optQuery != "" {
 		// fmt.Printf("AT: %s\n", dbgo.LF())
-		db_x := tl.ConnectToAnyDb("postgres", gCfg.DbConn, gCfg.DbName)
-		if db_x == nil {
+		db := sizlib.ConnectToDb(gCfg.DbConn)
+		if db == nil {
 			fmt.Fprintf(os.Stderr, "%sUnable to connection to database: %s\n", MiscLib.ColorRed, MiscLib.ColorReset)
 			os.Exit(1)
 		}
-		data, err := tl.SelData2(db_x.Db, *optQuery)
+		data, err := sizlib.SelData2(db, *optQuery)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%sUnable to connection to database/failed on table select: %v%s\n", MiscLib.ColorRed, err, MiscLib.ColorReset)
 			os.Exit(1)
