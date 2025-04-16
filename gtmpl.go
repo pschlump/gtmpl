@@ -44,6 +44,8 @@ import (
 	"github.com/pschlump/MiscLib"
 	"github.com/pschlump/ReadConfig"
 
+	// "github.com/pschlump/sprig"
+	"github.com/Masterminds/sprig/v3"
 	"github.com/pschlump/dbgo"
 	template "github.com/pschlump/extend"
 	"github.com/pschlump/filelib"
@@ -325,7 +327,14 @@ func main() {
 			name := fmt.Sprintf("derived_%s", *optExtend)
 			tmpl := template.New(name)
 
-			tmpl = tmpl.Funcs(rtFuncMap)
+			// tmpl = tmpl.Funcs(rtFuncMap)
+			// a := sprig.FuncMap()
+			// for k, v := range rtFuncMap {
+			a := rtFuncMap
+			for k, v := range sprig.FuncMap() {
+				a[k] = v
+			}
+			tmpl = tmpl.Funcs(a)
 		}
 
 		//	} else if *optTmplList != "" {
