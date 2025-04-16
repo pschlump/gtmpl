@@ -1,12 +1,13 @@
+AT: File: /Users/philip/go/src/github.com/pschlump/gtmpl/gtmpl.go LineNo:238
 Data: {
 	"a": 22,
-	"b": 8,
 	"c": "bob c"
 }
 gCfg: {
-	"name": "gtmpl"
+	"name": "gtmpl",
+	"dbconn": "user=pschlump dbname=q8s port=5432 host=127.0.0.1 sslmode=disable"
 }
 TMPL files tmplList: [
+	".aaa.tmpl.swp",
 	"aaa.tmpl"
 ]
-Unable to open: aaa.tmpl error open aaa.tmpl: no such file or directory 

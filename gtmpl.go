@@ -45,13 +45,13 @@ import (
 	"github.com/pschlump/ReadConfig"
 
 	"github.com/pschlump/dbgo"
+	template "github.com/pschlump/extend"
 	"github.com/pschlump/filelib"
 	"github.com/pschlump/gtmpl/sizlib"
 	"github.com/pschlump/ms"
-	sprig "github.com/pschlump/sprig"
-	template "github.com/pschlump/textTemplate"
 )
 
+// template "github.com/pschlump/textTemplate"
 // template "github.com/pschlump/extend"
 
 //
@@ -309,11 +309,12 @@ func main() {
 		"include": includeFile, //
 	}
 
-	if false {
-		name := "bob"
-		tmpl := template.New(name).Funcs(sprig.FuncMap())
-		_ = tmpl
-	}
+	// xyzzy - TODO - fix sprig
+	//if false {
+	//	name := "bob"
+	//	tmpl := template.New(name).Funcs(sprig.FuncMap())
+	//	_ = tmpl
+	//}
 
 	if *optExtend != "" {
 		// *optExtend is a template name that will have an "extend" in it.
@@ -370,7 +371,9 @@ func main() {
 
 			//create a new template with some name
 			// tmpl := template.New(fmt.Sprintf("tmpl_%d", tn)).Funcs(sprig.TxtFuncMap())
-			tmpl := template.New(fmt.Sprintf("tmpl_%d", tn)).Funcs(sprig.AddFuncMap(rtFuncMap))
+			// tmpl := template.New(fmt.Sprintf("tmpl_%d", tn)).Funcs(sprig.AddFuncMap(rtFuncMap))
+			// xyzzy - TODO - fix sprig
+			tmpl := template.New(fmt.Sprintf("tmpl_%d", tn))
 
 			if DbOn["proc_file"] {
 				fmt.Printf("%sprocessing [%v]%s\n", MiscLib.ColorGreen, tn, MiscLib.ColorReset)

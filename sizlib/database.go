@@ -134,6 +134,11 @@ func RowsToInterface(rows pgx.Rows) ([]map[string]interface{}, string, int) {
 				// oneRow[columns[i]] = fmt.Sprintf ( "%v", value )	// PJS-2014-03-06 - I suspect that this is a defect
 				oneRow[columns[i]] = value
 
+			case int32:
+				// fmt.Println("i, %s", columns[i], ": ", value, dbgo.LF())
+				// oneRow[columns[i]] = fmt.Sprintf ( "%v", value )	// PJS-2014-03-06 - I suspect that this is a defect
+				oneRow[columns[i]] = int(value.(int32))
+
 			case float64:
 				// fmt.Println("f, %s", columns[i], ": ", value, dbgo.LF())
 				// oneRow[columns[i]] = fmt.Sprintf ( "%v", value )
